@@ -1,0 +1,5 @@
+Django==1.10.3
+django-extensions==1.7.5
+pyTelegramBotAPI==2.2.3
+raven==5.32.0
+Pillow==4.0.0
