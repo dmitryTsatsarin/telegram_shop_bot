@@ -9,14 +9,13 @@ class ProductAdmin(admin.ModelAdmin):
     pass
 
 class OrderAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields = ['product', 'customer']
 
 class CustomerAdmin(admin.ModelAdmin):
     pass
 
 class FeedbackAdmin(admin.ModelAdmin):
     readonly_fields = ['customer']
-    pass
 
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
