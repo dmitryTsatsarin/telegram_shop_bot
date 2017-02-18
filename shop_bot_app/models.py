@@ -31,3 +31,12 @@ class Order(models.Model):
 
     def __unicode__(self):
         return u'%s' % self.id
+
+
+class Feedback(models.Model):
+    customer = models.ForeignKey(Customer)
+    description = models.TextField()
+    created_at= models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        return u'%s' % self.description

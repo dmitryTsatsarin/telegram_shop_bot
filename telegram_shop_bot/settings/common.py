@@ -153,3 +153,12 @@ LOGGING = {
     },
 }
 TELEGRAM_TOKEN = '352078617:AAEOSQCRMSkXHrSjDS363rDe4wyKW3OdcUQ'
+
+
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'artbelka.bot1'
+EMAIL_FULL_ADDRESS = 'artbelka.bot1@yandex.ru'
+EMAIL_BOT_ADMIN = 'dmitry.tsatsarin@gmail.com'
+EMAIL_HOST_PASSWORD = '1234512345'
+EMAIL_USE_SSL = True
