@@ -129,7 +129,8 @@ def handle_send_message_to_administator(message):
     user_contacts =u'%s %s, %s' % (customer.first_name, customer.last_name, customer.phone)
     mail_text = u'Сообщение: %s\n От кого: %s' % (message.text, user_contacts)
 
-    send_mail('От бота артбелки', mail_text, settings.EMAIL_FULL_ADDRESS, [settings.EMAIL_BOT_ADMIN])
+    # todo: вынести отправку письма в sentry, добавить кнопку с телефоном, если он не заполнен
+    send_mail(u'От бота артбелки', mail_text, settings.EMAIL_FULL_ADDRESS, [settings.EMAIL_BOT_ADMIN])
     text_out = u'Ваше сообщение оправлено администратору. Ответ в течение 1-48 часов'
     bot.send_message(message.chat.id, text_out, reply_markup=menu_markup)
 
