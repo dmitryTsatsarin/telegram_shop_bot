@@ -29,6 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'media')
+STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static')
 
 
 # Application definition
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'raven.contrib.django.raven_compat',
     'djcelery',
     'shop_bot_app'
 ]
@@ -171,9 +173,6 @@ CACHES = {
         'LOCATION': '/tmp/django_cache',
     }
 }
-
-CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
-BROKER_URL = 'amqp://myusername:mypassword@localhost:5672//telegram_shop_bot'
 
 CELERYBEAT_SCHEDULE = {
     'post_by_schedule': {
