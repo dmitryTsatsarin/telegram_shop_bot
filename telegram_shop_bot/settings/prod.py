@@ -65,4 +65,4 @@ CSRF_COOKIE_SECURE = False # выставить в True, когда будет h
 ALLOWED_HOSTS = ['*', '46.101.235.119']
 
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
-BROKER_URL = 'amqp://rabbitusername:6cae046bd8de29@localhost:5672//myvhost'
+BROKER_URL = 'amqp://rabbitusername:6cae046bd8de29@localhost:5672//telegram_shop_bot'
