@@ -43,6 +43,9 @@ def handle_start_help(message):
 
 @bot.message_handler(func=lambda message: message.text.lower().startswith(u'faq'), content_types=['text'])
 def handle_faq(message):
+    text_out = u'Наши контакты\n +711111111111'
+    bot.send_message(message.chat.id, text_out)
+
     text_out = u'Вопрос 1\n Ответ1'
     bot.send_message(message.chat.id, text_out)
 
