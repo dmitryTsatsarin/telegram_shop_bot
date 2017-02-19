@@ -20,7 +20,7 @@ def post_by_schedule():
     # todo: опимизировать все в один запрос (но пока несрочно)
     for customer in customers:
         for postponed_post in postponed_posts:
-            if not PostponedPostResult.objects.filter().exists():
+            if not PostponedPostResult.objects.filter(customer=customer, postponed_post=postponed_post).exists():
                 send_schedule_product(customer.chat_id, postponed_post.product_id, postponed_post.description)
                 PostponedPostResult.objects.create(customer=customer, postponed_post=postponed_post, is_sent=True)
                 logger.info(u'Запущен PostponedPost с id=%s' % postponed_post.id)
