@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from django.db import models
@@ -40,3 +41,24 @@ class Feedback(models.Model):
 
     def __unicode__(self):
         return u'%s' % self.description
+
+
+class PostponedPost(models.Model):
+    title = models.CharField(max_length=100, verbose_name=u'Заголовок')
+    description = models.TextField(verbose_name=u'Описание преложения/новости')
+    product = models.ForeignKey(Product, verbose_name=u'Товар')
+    send_at = models.DateTimeField(verbose_name=u'Отправить в')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        return u'%s' % self.title
+
+
+class PostponedPostResult(models.Model):
+    customer = models.ForeignKey(Customer)
+    postponed_post = models.ForeignKey(PostponedPost)
+    is_sent = models.BooleanField(default=False, verbose_name=u'Отправлено')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        return u'%s' % self.id

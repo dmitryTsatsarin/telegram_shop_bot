@@ -3,3 +3,6 @@ django-extensions==1.7.5
 pyTelegramBotAPI==2.2.3
 raven==5.32.0
 Pillow==4.0.0
+celery==3.1.25
+django-celery==3.2.1
+arrow==0.10.0

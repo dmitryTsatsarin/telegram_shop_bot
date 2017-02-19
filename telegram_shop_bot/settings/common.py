@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from celery.schedules import crontab
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'djcelery',
     'shop_bot_app'
 ]
 
@@ -139,11 +141,11 @@ LOGGING = {
         }
     },
     'loggers': {
-        # 'celery.utils.dispatch.signal': {
-        #     'handlers': ['console'],
-        #     'level': 'ERROR',
-        #     'propagate': True,
-        # },
+        'celery.utils.dispatch.signal': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
         # 'publisher': {
         #     'handlers': ['console'],
         #     'level': 'DEBUG',
@@ -162,3 +164,20 @@ EMAIL_FULL_ADDRESS = 'artbelka.bot1@yandex.ru'
 EMAIL_BOT_ADMIN = 'dmitry.tsatsarin@gmail.com'
 EMAIL_HOST_PASSWORD = '1234512345'
 EMAIL_USE_SSL = True
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/django_cache',
+    }
+}
+
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+BROKER_URL = 'amqp://myusername:mypassword@localhost:5672//telegram_shop_bot'
+
+CELERYBEAT_SCHEDULE = {
+    'post_by_schedule': {
+        'task': 'shop_bot_app.tasks.post_by_schedule',
+        'schedule': crontab(minute="*"),
+    },
+}

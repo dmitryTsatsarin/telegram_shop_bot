@@ -53,6 +53,20 @@ def handle_faq(message):
     bot.send_message(message.chat.id, text_out)
 
 
+def send_schedule_product(chat_id, product_id, text_before):
+    product = Product.objects.filter(id=product_id).get()
+
+    image_file = ImageFile(product.picture)
+    order_command = u'/get_it_%s' % product.id
+    caption = u'%s\nНаименование: %s\nОписание: %s\nЦена: %s' % (text_before, product.name, product.description, product.price)
+
+    markup = types.InlineKeyboardMarkup()
+    callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
+    markup.add(callback_button)
+
+    bot.send_photo(chat_id, image_file, caption=caption, reply_markup=markup)
+
+
 @bot.message_handler(func=lambda message: message.text.lower().startswith(u'каталог'), content_types=['text'])
 def handle_catalog(message):
     queryset = Product.objects.order_by('-id')[:10]
