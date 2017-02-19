@@ -54,6 +54,11 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        'celery': {
+            'level': 'WARNING',
+            'handlers': ['sentry'],
+            'propagate': False,
+        },
     },
 }
 CSRF_COOKIE_SECURE = False # выставить в True, когда будет https (https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/)
