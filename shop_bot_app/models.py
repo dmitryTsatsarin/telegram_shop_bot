@@ -2,14 +2,14 @@
 from __future__ import unicode_literals
 
 from django.db import models
-
-# Create your models here.
+from django.contrib.auth.models import User
 
 class Product(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     picture = models.ImageField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    catalog = models.ForeignKey('Catalog', null=True)
     is_discount = models.BooleanField(default=False)
 
     def __unicode__(self):
@@ -62,3 +62,16 @@ class PostponedPostResult(models.Model):
 
     def __unicode__(self):
         return u'%s' % self.id
+
+
+class Catalog(models.Model):
+    name = models.CharField(max_length=100)
+
+
+class BotAdministratorProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    telegram_token = models.CharField(max_length=255, null=True, blank=True)
+    telegram_token_test = models.CharField(max_length=255, null=True, blank=True, help_text=u'Токен телеграмма для тестрования')
+
+    def __unicode__(self):
+        return u'%s' % self.user.username

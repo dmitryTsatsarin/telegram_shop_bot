@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Django settings for telegram_shop_bot project.
 
@@ -44,14 +45,14 @@ INSTALLED_APPS = [
     'django_extensions',
     'raven.contrib.django.raven_compat',
     'djcelery',
-    'shop_bot_app'
+    'shop_bot_app.apps.ShopBotAppConfig'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware', # подумать, нужно ли включать обратно
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

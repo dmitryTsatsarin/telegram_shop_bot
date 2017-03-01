@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand
+import telebot
+from django.conf import settings
 
-from shop_bot_app.logic import bot
-
-
+from shop_bot_app.helpers import initialize_bot_cert
 
 
 class Command(BaseCommand):
@@ -13,4 +13,5 @@ class Command(BaseCommand):
     #     parser.add_argument('sample', nargs='+')
 
     def handle(self, *args, **options):
-        bot.polling(none_stop=True)
+
+        initialize_bot_cert()

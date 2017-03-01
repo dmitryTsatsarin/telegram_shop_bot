@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 to_log = logger.info
 
 
-bot = telebot.TeleBot(settings.TELEGRAM_TOKEN)
+
+from shop_bot_app.utils import bot
 
 menu_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 menu_markup.row(u'Каталог', u'Распродажа %')
