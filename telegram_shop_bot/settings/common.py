@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'raven.contrib.django.raven_compat',
     'djcelery',
-    'shop_bot_app.apps.ShopBotAppConfig'
+    'shop_bot_app'
 ]
 
 MIDDLEWARE = [

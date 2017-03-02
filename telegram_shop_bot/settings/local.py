@@ -60,7 +60,7 @@ LOGGING = {
         },
         'celery': {
             'level': 'WARNING',
-            'handlers': ['sentry'],
+            'handlers': ['console','sentry'],
             'propagate': False,
         },
         'shop_bot_app': {

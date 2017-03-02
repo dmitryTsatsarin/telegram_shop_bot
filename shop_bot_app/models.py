@@ -17,11 +17,21 @@ class Product(models.Model):
         return self.name
 
 
-class Customer(models.Model):
+class ChatIdBuyerMap(models.Model):
+    buyer = models.ForeignKey('Buyer')
+
+
+
+
+class Buyer(models.Model):
     first_name = models.CharField(max_length=255, default='')
     last_name = models.CharField(max_length=255, default='')
     phone = models.CharField(max_length=50, null=True)
     chat_id = models.BigIntegerField(null=True)
+
+    @property
+    def full_name(self):
+        return u'%s %s' % (self.first_name, self.last_name)
 
     def __unicode__(self):
         return u'%s %s %s' % (self.first_name, self.last_name, self.chat_id)
@@ -29,7 +39,7 @@ class Customer(models.Model):
 
 class Order(models.Model):
     product = models.ForeignKey(Product)
-    customer = models.ForeignKey(Customer)
+    buyer = models.ForeignKey(Buyer)
 
     def __unicode__(self):
         return u'%s' % self.id
@@ -37,7 +47,7 @@ class Order(models.Model):
 
 class Feedback(models.Model):
     bot = models.ForeignKey('Bot')
-    customer = models.ForeignKey(Customer)
+    buyer = models.ForeignKey(Buyer)
     description = models.TextField()
     created_at= models.DateTimeField(auto_now_add=True)
 
@@ -57,7 +67,7 @@ class PostponedPost(models.Model):
 
 
 class PostponedPostResult(models.Model):
-    customer = models.ForeignKey(Customer)
+    buyer = models.ForeignKey(Buyer)
     postponed_post = models.ForeignKey(PostponedPost)
     is_sent = models.BooleanField(default=False, verbose_name=u'Отправлено')
     created_at = models.DateTimeField(auto_now_add=True)

@@ -9,13 +9,13 @@ from telebot import types
 from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop
 from shop_bot_app.utils import create_shop_telebot
 
-from shop_bot_app.models import Product, Customer, Order, Feedback, Bot, Catalog
+from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog
 
 logger = logging.getLogger(__name__)
 to_log = logger.info
 
 
-def send_schedule_product(shop_telebot, chat_id, product_id, text_before):
+def send_schedule_product(chat_id, product_id, text_before):
     product = Product.objects.filter(id=product_id).get()
 
     image_file = ImageFile(product.picture)
@@ -25,13 +25,13 @@ def send_schedule_product(shop_telebot, chat_id, product_id, text_before):
     markup = types.InlineKeyboardMarkup()
     callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
     markup.add(callback_button)
+    shop_telebot = create_shop_telebot(product.bot.telegram_token)
     shop_telebot.send_photo(chat_id, image_file, caption=caption, reply_markup=markup)
 
 
 def initialize_bot_with_routing(token, session):
     shop_telebot = create_shop_telebot(token)
     bot_id = Bot.objects.get(telegram_token=token).id
-    # TODO: везде пробросить bot_id!!!!!!!!
 
     menu_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_markup.row(u'Каталог', u'Распродажа %')
@@ -41,13 +41,13 @@ def initialize_bot_with_routing(token, session):
     @shop_telebot.message_handler(commands=['start',])
     def handle_start_help(message):
         chat_id = message.chat.id
-        # create customer
+        # create buyer
         try:
-            customer = Customer.objects.filter(chat_id=chat_id).get()
-        except Customer.DoesNotExist as e:
+            buyer = Buyer.objects.filter(chat_id=chat_id).get()
+        except Buyer.DoesNotExist as e:
             first_name = message.chat.first_name
             last_name = message.chat.last_name
-            customer = Customer.objects.create(chat_id=chat_id, first_name=first_name, last_name=last_name)
+            buyer = Buyer.objects.create(chat_id=chat_id, first_name=first_name, last_name=last_name)
 
         text_out = 'Привет! Я бот магазина одежды "АртБелкаДемоБот". Я могу принимать твои заказы и сообщать о скидках и акциях!'
         shop_telebot.send_message(message.chat.id, text_out)
@@ -128,9 +128,9 @@ def initialize_bot_with_routing(token, session):
     @shop_telebot.message_handler(content_types=['contact'])
     def handle_contact(message):
         phone_number = message.contact.phone_number
-        customer = Customer.objects.filter(chat_id=message.chat.id).get()
-        customer.phone = phone_number
-        customer.save()
+        buyer = Buyer.objects.filter(chat_id=message.chat.id).get()
+        buyer.phone = phone_number
+        buyer.save()
         text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
         shop_telebot.send_message(message.chat.id, text_out, reply_markup=menu_markup)
         text = u'Создан заказ %s' % session.get('order')
@@ -140,10 +140,10 @@ def initialize_bot_with_routing(token, session):
     @shop_telebot.callback_query_handler(func=lambda call: call.data.lower().startswith(u'/get_it_'))
     def callback_catalog_order(call):
         logger.debug('Оформление заказа')
-        customer = Customer.objects.filter(chat_id=call.message.chat.id).get()
+        buyer = Buyer.objects.filter(chat_id=call.message.chat.id).get()
         product_id = int(call.data.lower().replace(u'/get_it_', ''))
         product = Product.objects.filter(id=product_id).get()
-        order = Order.objects.create(customer=customer, product=product)
+        order = Order.objects.create(buyer=buyer, product=product)
         info_text = u'Заказ id=%s создан' % order.id
         logger.info(info_text)
         session['order'] = order.id
@@ -168,9 +168,9 @@ def initialize_bot_with_routing(token, session):
 
     @shop_telebot.message_handler(func=if_func, content_types=['text'])
     def handle_send_message_to_administator(message):
-        customer = Customer.objects.filter(chat_id=message.chat.id).get()
-        Feedback.objects.create(bot_id=bot_id, description=message.text, customer=customer)
-        user_contacts =u'%s %s, %s' % (customer.first_name, customer.last_name, customer.phone)
+        buyer = Buyer.objects.filter(chat_id=message.chat.id).get()
+        Feedback.objects.create(bot_id=bot_id, description=message.text, buyer=buyer)
+        user_contacts =u'%s %s, %s' % (buyer.first_name, buyer.last_name, buyer.phone)
         mail_text = u'Сообщение: %s\n От кого: %s' % (message.text, user_contacts)
 
         # todo: вынести отправку письма в celery, добавить кнопку с телефоном, если он не заполнен
