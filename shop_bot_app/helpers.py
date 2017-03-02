@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from django.core.mail import send_mail
+
+
 from shop_bot_app.models import Bot
 
 __author__ = 'forward'
@@ -47,6 +50,12 @@ def initialize_webhook_for_bot(token):
 
 def get_webhook_url(token):
     return "%s/webhooks/%s/" % (settings.WEBHOOK_URL_BASE, token)
+
+
+def send_mail_to_the_shop(text):
+    shop_administrator_email = settings.EMAIL_BOT_ADMIN # на данный момент пока администратор магазина это админ
+    send_mail(u'От бота артбелки', text, settings.EMAIL_FULL_ADDRESS, [shop_administrator_email])
+
 
 class TextCommandEnum(object):
     GET_CATALOG = u'/get_catalog_'

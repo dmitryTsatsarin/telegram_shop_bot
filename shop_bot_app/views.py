@@ -18,14 +18,13 @@ def webhooks(request, token):
     if 'CONTENT_LENGTH' in request.META and \
                     'CONTENT_TYPE' in request.META and \
                     request.META['CONTENT_TYPE'] == 'application/json':
-        #length = int(request.META['CONTENT_LENGTH'])
         json_string = request.body.decode("utf-8")
         update = telebot_lib.types.Update.de_json(json_string)
         # Эта функция обеспечивает проверку входящего сообщения
         print 'data=%s' % json_string
 
         if Bot.objects.filter(telegram_token=token).exists():
-            shop_telebot = initialize_bot_with_routing(token)
+            shop_telebot = initialize_bot_with_routing(token, request.session)
             shop_telebot.process_new_updates([update])
         else:
             logger.error('Token "%s" is not found')

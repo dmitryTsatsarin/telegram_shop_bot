@@ -6,7 +6,7 @@ from django.core.files.images import ImageFile
 from django.core.mail import send_mail
 from telebot import types
 
-from shop_bot_app.helpers import TextCommandEnum
+from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop
 from shop_bot_app.utils import create_shop_telebot
 
 from shop_bot_app.models import Product, Customer, Order, Feedback, Bot, Catalog
@@ -27,7 +27,8 @@ def send_schedule_product(shop_telebot, chat_id, product_id, text_before):
     markup.add(callback_button)
     shop_telebot.send_photo(chat_id, image_file, caption=caption, reply_markup=markup)
 
-def initialize_bot_with_routing(token):
+
+def initialize_bot_with_routing(token, session):
     shop_telebot = create_shop_telebot(token)
     bot_id = Bot.objects.get(telegram_token=token).id
     # TODO: везде пробросить bot_id!!!!!!!!
@@ -94,7 +95,7 @@ def initialize_bot_with_routing(token):
         # todo: возможно стоит вынести общую часть в отдельные функции
         for product in all_products:
             image_file = ImageFile(product.picture)
-            order_command = u'%s%s' % (TextCommandEnum, product.id)
+            order_command = u'%s%s' % (TextCommandEnum.GET_PRODUCT, product.id)
             caption = u'Наименование: %s\nОписание: %s\nЦена: %s' % (product.name, product.description, product.price)
 
             markup = types.InlineKeyboardMarkup()
@@ -132,15 +133,20 @@ def initialize_bot_with_routing(token):
         customer.save()
         text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
         shop_telebot.send_message(message.chat.id, text_out, reply_markup=menu_markup)
+        text = u'Создан заказ %s' % session.get('order')
+        send_mail_to_the_shop(text)
 
 
     @shop_telebot.callback_query_handler(func=lambda call: call.data.lower().startswith(u'/get_it_'))
     def callback_catalog_order(call):
-
+        logger.debug('Оформление заказа')
         customer = Customer.objects.filter(chat_id=call.message.chat.id).get()
         product_id = int(call.data.lower().replace(u'/get_it_', ''))
         product = Product.objects.filter(id=product_id).get()
-        Order.objects.create(customer=customer, product=product)
+        order = Order.objects.create(customer=customer, product=product)
+        info_text = u'Заказ id=%s создан' % order.id
+        logger.info(info_text)
+        session['order'] = order.id
 
         markup = types.ReplyKeyboardMarkup(row_width=1)
         phone_btn = types.KeyboardButton(u'отправить номер телефона', request_contact=True)
