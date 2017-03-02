@@ -5,9 +5,11 @@ from django.conf import settings
 from django.core.files.images import ImageFile
 from django.core.mail import send_mail
 from telebot import types
+
+from shop_bot_app.helpers import TextCommandEnum
 from shop_bot_app.utils import create_shop_telebot
 
-from shop_bot_app.models import Product, Customer, Order, Feedback, Bot
+from shop_bot_app.models import Product, Customer, Order, Feedback, Bot, Catalog
 
 logger = logging.getLogger(__name__)
 to_log = logger.info
@@ -73,19 +75,34 @@ def initialize_bot_with_routing(token):
 
     @shop_telebot.message_handler(func=lambda message: message.text.lower().startswith(u'каталог'), content_types=['text'])
     def handle_catalog(message):
-        #todo: сделать полноценный каталог!!!!!!!!!!!!!!!!!!!
-        queryset = Product.objects.filter(bot_id=bot_id).order_by('-id')[:10]
+        catalogs = list(Catalog.objects.filter(bot_id=bot_id))
+        markup = types.InlineKeyboardMarkup()
+        for catalog in catalogs:
+            order_command = u'/get_catalog_%s' % catalog.id
+            products_count = Product.objects.filter(catalog_id=catalog.id, bot_id=bot_id).count()
+            text = u'%s (%s)' % (catalog.name, products_count)
+            callback_button = types.InlineKeyboardButton(text=text, callback_data=order_command)
+            markup.add(callback_button)
+        shop_telebot.send_message(message.chat.id, 'Каталоги', reply_markup=markup)
+
+    @shop_telebot.callback_query_handler(func=lambda call: call.data.lower().startswith(TextCommandEnum.GET_CATALOG))
+    def handle_show_catalog_products(call):
+        catalog_id = int(call.data.lower().replace(TextCommandEnum.GET_CATALOG, ''))
+
+        queryset = Product.objects.filter(bot_id=bot_id, catalog_id=catalog_id).order_by('-id')[:10]
         all_products = list(queryset)
+        # todo: возможно стоит вынести общую часть в отдельные функции
         for product in all_products:
             image_file = ImageFile(product.picture)
-            order_command = u'/get_it_%s' % product.id
+            order_command = u'%s%s' % (TextCommandEnum, product.id)
             caption = u'Наименование: %s\nОписание: %s\nЦена: %s' % (product.name, product.description, product.price)
 
             markup = types.InlineKeyboardMarkup()
             callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
             markup.add(callback_button)
-
-            shop_telebot.send_photo(message.chat.id, image_file, caption=caption, reply_markup=markup)
+            shop_telebot.send_photo(call.message.chat.id, image_file, caption=caption, reply_markup=markup)
+        if not all_products:
+            shop_telebot.send_message(call.message.chat.id, u'Каталог пуст')
 
 
     @shop_telebot.message_handler(func=lambda message: message.text.lower().startswith(u'распродажа'), content_types=['text'])
@@ -103,6 +120,8 @@ def initialize_bot_with_routing(token):
             markup.add(callback_button)
 
             shop_telebot.send_photo(message.chat.id, image_file, caption=caption, reply_markup=markup)
+        if not products:
+            shop_telebot.send_message(message.chat.id, u'Нет товара на скидке')
 
 
     @shop_telebot.message_handler(content_types=['contact'])

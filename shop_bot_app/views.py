@@ -29,7 +29,6 @@ def webhooks(request, token):
             shop_telebot.process_new_updates([update])
         else:
             logger.error('Token "%s" is not found')
-        print 'finished %s ' % request.get_full_path()
         return HttpResponse('')
     else:
         print 'Forbiden for %s' % request.body

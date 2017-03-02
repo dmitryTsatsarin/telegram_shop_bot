@@ -3,8 +3,13 @@ __author__ = 'forward'
 from telebot import TeleBot
 from django.conf import settings
 
-class ShopTeleBot(TeleBot):
+class ShopTeleBot(TeleBot, object):
     pass
+
+    def send_photo(self, *args, **kwargs):
+        result = super(ShopTeleBot, self).send_photo(*args, **kwargs)
+        print 'Send photo is finished'
+        return result
 
 def create_shop_telebot(token):
     print 'Get bot function run'

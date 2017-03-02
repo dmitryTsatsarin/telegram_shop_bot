@@ -47,3 +47,7 @@ def initialize_webhook_for_bot(token):
 
 def get_webhook_url(token):
     return "%s/webhooks/%s/" % (settings.WEBHOOK_URL_BASE, token)
+
+class TextCommandEnum(object):
+    GET_CATALOG = u'/get_catalog_'
+    GET_PRODUCT = u'/get_it_'
