@@ -17,24 +17,26 @@ class Product(models.Model):
         return self.name
 
 
-class ChatIdBuyerMap(models.Model):
-    buyer = models.ForeignKey('Buyer')
+class BotBuyerMap(models.Model):
+    buyer = models.ForeignKey('Buyer', related_name='bot_buyer_map_rel')
+    bot = models.ForeignKey('Bot', related_name='bot_buyer_map_rel')
 
-
+    def __unicode__(self):
+        return u'%s <-> %s' % (self.bot.name, self.buyer.full_name)
 
 
 class Buyer(models.Model):
     first_name = models.CharField(max_length=255, default='')
     last_name = models.CharField(max_length=255, default='')
     phone = models.CharField(max_length=50, null=True)
-    chat_id = models.BigIntegerField(null=True)
+    telegram_user_id = models.BigIntegerField(null=True)
 
     @property
     def full_name(self):
         return u'%s %s' % (self.first_name, self.last_name)
 
     def __unicode__(self):
-        return u'%s %s %s' % (self.first_name, self.last_name, self.chat_id)
+        return u'%s %s %s' % (self.first_name, self.last_name, self.telegram_user_id)
 
 
 class Order(models.Model):

@@ -59,7 +59,7 @@ LOGGING = {
             'propagate': False,
         },
         'celery': {
-            'level': 'WARNING',
+            'level': 'INFO',
             'handlers': ['console','sentry'],
             'propagate': False,
         },

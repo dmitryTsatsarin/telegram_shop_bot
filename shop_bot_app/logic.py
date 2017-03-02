@@ -7,15 +7,14 @@ from django.core.mail import send_mail
 from telebot import types
 
 from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop
+from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap
 from shop_bot_app.utils import create_shop_telebot
-
-from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog
 
 logger = logging.getLogger(__name__)
 to_log = logger.info
 
 
-def send_schedule_product(chat_id, product_id, text_before):
+def send_schedule_product(telegram_user_id, product_id, text_before):
     product = Product.objects.filter(id=product_id).get()
 
     image_file = ImageFile(product.picture)
@@ -26,7 +25,7 @@ def send_schedule_product(chat_id, product_id, text_before):
     callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
     markup.add(callback_button)
     shop_telebot = create_shop_telebot(product.bot.telegram_token)
-    shop_telebot.send_photo(chat_id, image_file, caption=caption, reply_markup=markup)
+    shop_telebot.send_photo(telegram_user_id, image_file, caption=caption, reply_markup=markup)
 
 
 def initialize_bot_with_routing(token, session):
@@ -40,14 +39,21 @@ def initialize_bot_with_routing(token, session):
     # Обработчик команд '/start'
     @shop_telebot.message_handler(commands=['start',])
     def handle_start_help(message):
-        chat_id = message.chat.id
+        telegram_user_id = message.chat.id
         # create buyer
         try:
-            buyer = Buyer.objects.filter(chat_id=chat_id).get()
-        except Buyer.DoesNotExist as e:
+            BotBuyerMap.objects.filter(buyer__telegram_user_id=telegram_user_id, bot__telegram_token=token).get()
+        except BotBuyerMap.DoesNotExist as e:
             first_name = message.chat.first_name
             last_name = message.chat.last_name
-            buyer = Buyer.objects.create(chat_id=chat_id, first_name=first_name, last_name=last_name)
+            buyer, _ = Buyer.objects.get_or_create(telegram_user_id=telegram_user_id, defaults=dict(
+                        first_name=first_name,
+                        last_name=last_name,
+                        telegram_user_id=telegram_user_id
+                )
+            )
+            bot = Bot.objects.filter(telegram_token=token).get()
+            BotBuyerMap.objects.create(bot=bot, buyer=buyer)
 
         text_out = 'Привет! Я бот магазина одежды "АртБелкаДемоБот". Я могу принимать твои заказы и сообщать о скидках и акциях!'
         shop_telebot.send_message(message.chat.id, text_out)
@@ -128,7 +134,7 @@ def initialize_bot_with_routing(token, session):
     @shop_telebot.message_handler(content_types=['contact'])
     def handle_contact(message):
         phone_number = message.contact.phone_number
-        buyer = Buyer.objects.filter(chat_id=message.chat.id).get()
+        buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()
         buyer.phone = phone_number
         buyer.save()
         text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
@@ -140,7 +146,7 @@ def initialize_bot_with_routing(token, session):
     @shop_telebot.callback_query_handler(func=lambda call: call.data.lower().startswith(u'/get_it_'))
     def callback_catalog_order(call):
         logger.debug('Оформление заказа')
-        buyer = Buyer.objects.filter(chat_id=call.message.chat.id).get()
+        buyer = Buyer.objects.filter(telegram_user_id=call.message.chat.id).get()
         product_id = int(call.data.lower().replace(u'/get_it_', ''))
         product = Product.objects.filter(id=product_id).get()
         order = Order.objects.create(buyer=buyer, product=product)
@@ -168,7 +174,7 @@ def initialize_bot_with_routing(token, session):
 
     @shop_telebot.message_handler(func=if_func, content_types=['text'])
     def handle_send_message_to_administator(message):
-        buyer = Buyer.objects.filter(chat_id=message.chat.id).get()
+        buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()
         Feedback.objects.create(bot_id=bot_id, description=message.text, buyer=buyer)
         user_contacts =u'%s %s, %s' % (buyer.first_name, buyer.last_name, buyer.phone)
         mail_text = u'Сообщение: %s\n От кого: %s' % (message.text, user_contacts)

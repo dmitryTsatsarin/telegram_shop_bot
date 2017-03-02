@@ -21,7 +21,7 @@ def webhooks(request, token):
         json_string = request.body.decode("utf-8")
         update = telebot_lib.types.Update.de_json(json_string)
         # Эта функция обеспечивает проверку входящего сообщения
-        print 'data=%s' % json_string
+        logger.info(u'data=%s' % json_string)
 
         if Bot.objects.filter(telegram_token=token).exists():
             shop_telebot = initialize_bot_with_routing(token, request.session)
