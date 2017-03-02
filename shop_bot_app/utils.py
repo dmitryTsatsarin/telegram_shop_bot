@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 __author__ = 'forward'
-import telebot
+from telebot import TeleBot
 from django.conf import settings
 
-def get_bot():
+class ShopTeleBot(TeleBot):
+    pass
+
+def create_shop_telebot(token):
     print 'Get bot function run'
-    bot = telebot.TeleBot(settings.TELEGRAM_TOKEN)
+    bot = ShopTeleBot(token)
     return bot
 
-bot = get_bot()

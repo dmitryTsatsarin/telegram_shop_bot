@@ -157,7 +157,6 @@ LOGGING = {
 
     },
 }
-TELEGRAM_TOKEN = '352078617:AAEOSQCRMSkXHrSjDS363rDe4wyKW3OdcUQ'
 
 
 EMAIL_HOST = 'smtp.yandex.ru'
