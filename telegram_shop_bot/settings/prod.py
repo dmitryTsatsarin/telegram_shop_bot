@@ -66,6 +66,11 @@ LOGGING = {
             'handlers': ['sentry'],
             'propagate': False,
         },
+        'shop_bot_app': {
+            'level': 'INFO',
+            'handlers': ['console', 'sentry'],
+            'propagate': False,
+        }
     },
 }
 CSRF_COOKIE_SECURE = False # выставить в True, когда будет https (https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/)
