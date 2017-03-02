@@ -13,6 +13,13 @@ RAVEN_CONFIG = {
 }
 DEBUG = False
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.prod.sqlite3'),
+    }
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
