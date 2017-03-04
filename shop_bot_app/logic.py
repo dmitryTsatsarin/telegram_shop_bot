@@ -102,7 +102,8 @@ def initialize_bot_with_routing(token, session):
         for product in all_products:
             image_file = ImageFile(product.picture)
             order_command = u'%s%s' % (TextCommandEnum.GET_PRODUCT, product.id)
-            caption = u'Наименование: %s\nОписание: %s\nЦена: %s' % (product.name, product.description, product.price)
+            caption = u'Наименование: %s\nОписание: %s' % (product.name, product.description)
+            #caption = u'Наименование: %s\nОписание: %s\nЦена: %s' % (product.name, product.description, product.price)
 
             markup = types.InlineKeyboardMarkup()
             callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
