@@ -85,11 +85,11 @@ DATABASES = {
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 BROKER_URL = 'amqp://myusername:mypassword@localhost:5672//telegram_shop_bot'
 
-ALLOWED_HOSTS = ['*', 'tsd.fwd.wf']
+ALLOWED_HOSTS = ['*', '2e6f2ab8.ngrok.io']
 
 
-WEBHOOK_HOST = 'tsd.fwd.wf'
-WEBHOOK_LISTEN = 'tsd.fwd.wf'
+WEBHOOK_HOST = 'a0c4305f.ngrok.io'
+WEBHOOK_LISTEN = 'a0c4305f.ngrok.io'
 WEBHOOK_PORT = 443
 
 WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
@@ -97,4 +97,4 @@ WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = '/tmp/mails'
 
-LOGUTILS_REQUEST_TIME_THRESHOLD = 10 # уведомлять о всех запросах дольше 10 секунд
+LOGUTILS_REQUEST_TIME_THRESHOLD = 20 # уведомлять о всех запросах дольше 10 секунд

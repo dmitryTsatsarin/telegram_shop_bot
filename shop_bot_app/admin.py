@@ -36,7 +36,8 @@ class BotAdministratorProfileAdmin(admin.ModelAdmin):
 
 
 class BotAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields = ['administrator']
+    #exclude = ['is_bot_for_testing']
 
 
 class BotBuyerMapAdmin(admin.ModelAdmin):

@@ -31,7 +31,7 @@ def initialize_all_webhooks():
 
         # Ставим заново вебхук
         url = get_webhook_url(bot.telegram_token)
-        print 'url=%s' % url
+        print 'bot = %s, url=%s' % (bot.name, url)
         shop_telebot.set_webhook(url=url)
     print 'Инициализация закончена'
 
@@ -60,3 +60,11 @@ def send_mail_to_the_shop(text):
 class TextCommandEnum(object):
     GET_CATALOG = u'/get_catalog_'
     GET_PRODUCT = u'/get_it_'
+
+
+def get_request_data(request):
+    if hasattr(request, 'request_data'):
+        return request.request_data
+    request_data = request.body.decode('utf-8')
+    request.request_data = request_data
+    return request_data

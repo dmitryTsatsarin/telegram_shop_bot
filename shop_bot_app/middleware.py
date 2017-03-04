@@ -8,8 +8,11 @@ import logging
 import time
 
 from django.db import connection
+from django.views.decorators.csrf import csrf_exempt
 from django_logutils.conf import settings
 from django.utils.deprecation import MiddlewareMixin
+
+from shop_bot_app.helpers import get_request_data
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +46,7 @@ def create_log_dict(request, response):
     else:
         content_length = len(response.content)
 
+    request_data = get_request_data(request)
     return {
         # 'event' makes event-based filtering possible in logging backends
         # like logstash
@@ -53,7 +57,7 @@ def create_log_dict(request, response):
         'url': request.get_full_path(),
         'status': response.status_code,
         'content_length': content_length,
-        'request_data': request.body.decode('unicode-escape'),
+        'request_data': request_data.decode('unicode-escape'),
         'request_time': -1,  # NA value: real value added by LoggingMiddleware
     }
 
@@ -117,6 +121,10 @@ class TsdLoggingMiddleware(MiddlewareMixin, object):
         Create the logging message..
         """
         try:
+            skip_it = '/admin'
+            if request.get_full_path().startswith(skip_it):
+                return response
+
             log_dict = create_log_dict(request, response)
 
             # add the request time to the log_dict; if no start time is

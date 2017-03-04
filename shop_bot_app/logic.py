@@ -190,7 +190,7 @@ def initialize_bot_with_routing(token, session):
         # дефолтный хэдлер, если не нашло подходящий
         text_out = u'Команда "%s" не найдена, попробуйте выбрать другую команду' % message.text
         shop_telebot.send_message(message.chat.id, text_out, reply_markup=menu_markup)
-        logger.error(u'Запрос не обработался: %s' % message)
+        logger.warning(u'Запрос не обработался: %s' % message)
 
     return shop_telebot
 
