@@ -13,3 +13,10 @@
 **Запуск воркеров**
 
 	python manage.py celery -A telegram_shop_bot worker -l info --events -c 1 --settings=telegram_shop_bot.settings.prod
+	
+	
+**Регламент обновления**
+1) обновить исходники
+2) установить пакеты через pip
+3) выполнить миграции
+4) перезагрузить web-сервер через supervisor
