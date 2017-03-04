@@ -4,6 +4,8 @@ from django.http import JsonResponse, HttpResponse, Http404
 import telebot as telebot_lib
 
 from django.http import HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
+
 from shop_bot_app.logic import initialize_bot_with_routing
 from shop_bot_app.models import Bot
 
@@ -12,6 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+@csrf_exempt
 def webhooks(request, token):
     print 'Started %s ' % request.get_full_path()
 
