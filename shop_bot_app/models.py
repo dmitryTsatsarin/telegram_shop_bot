@@ -7,7 +7,6 @@ from os.path import splitext
 import uuid
 
 def rename_and_upload_path(instance, filename):
-    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     _, ext = splitext(filename)
 
     base_filename = str(uuid.uuid4())
