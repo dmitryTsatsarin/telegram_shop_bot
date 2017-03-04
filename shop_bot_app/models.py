@@ -3,12 +3,24 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
+from os.path import splitext
+import uuid
+
+def rename_and_upload_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    _, ext = splitext(filename)
+
+    base_filename = str(uuid.uuid4())
+
+    return 'product_photo/%s%s' % (base_filename, ext)
+
+
 
 class Product(models.Model):
     bot = models.ForeignKey('Bot')
     name = models.CharField(max_length=255)
     description = models.TextField()
-    picture = models.ImageField()
+    picture = models.ImageField(upload_to=rename_and_upload_path)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     catalog = models.ForeignKey('Catalog', null=True)
     is_discount = models.BooleanField(default=False)
