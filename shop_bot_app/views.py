@@ -26,7 +26,7 @@ def webhooks(request, token):
                 shop_telebot = initialize_bot_with_routing(token, request.session)
                 shop_telebot.process_new_updates([update])
             else:
-                logger.error('Token "%s" is not found')
+                logger.error('Token "%s" is not found' % token)
             return HttpResponse('')
         else:
             print 'Forbiden for %s' % request.body
