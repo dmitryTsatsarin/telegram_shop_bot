@@ -27,7 +27,7 @@ LOGGING = {
     },
     'handlers': {
         'sentry': {
-            'level': 'ERROR', # To capture more than ERROR, change to WARNING, INFO, etc.
+            'level': 'WARNING', # To capture more than ERROR, change to WARNING, INFO, etc.
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
             'tags': {'custom-tag': 'x'},
         },
@@ -67,7 +67,7 @@ LOGGING = {
             'level': 'INFO',
             'handlers': ['console', 'sentry'],
             'propagate': False,
-        }
+        },
     },
 }
 
@@ -75,6 +75,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    },
+    'stat': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.stat.sqlite3'),
     }
 }
 
@@ -92,3 +96,5 @@ WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = '/tmp/mails'
+
+LOGUTILS_REQUEST_TIME_THRESHOLD = 10 # уведомлять о всех запросах дольше 10 секунд

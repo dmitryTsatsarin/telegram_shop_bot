@@ -49,6 +49,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'shop_bot_app.middleware.TsdLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -180,3 +181,5 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute="*"),
     },
 }
+
+LOGUTILS_REQUEST_TIME_THRESHOLD = 3 # уведомлять о всех запросах дольше 3 секунд
