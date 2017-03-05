@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from shop_bot_app.models import Product, Order, Buyer, Feedback, PostponedPost, PostponedPostResult, Catalog, BotAdministratorProfile, Bot, BotBuyerMap
+from shop_bot_app.models import Product, Order, Buyer, Feedback, PostponedPost, PostponedPostResult, Catalog, BotAdministratorProfile, Bot, BotBuyerMap, FAQ
 
 
 class ProductAdmin(admin.ModelAdmin):
@@ -44,6 +44,9 @@ class BotBuyerMapAdmin(admin.ModelAdmin):
     pass
 
 
+class FAQAdmin(admin.ModelAdmin):
+    pass
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Buyer, BuyerAdmin)
@@ -53,3 +56,4 @@ admin.site.register(PostponedPostResult, PostponedPostResultAdmin)
 admin.site.register(Catalog, CatalogAdmin)
 admin.site.register(Bot, BotAdmin)
 admin.site.register(BotBuyerMap, BotBuyerMapAdmin)
+admin.site.register(FAQ, FAQAdmin)

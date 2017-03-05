@@ -15,7 +15,6 @@ class ShopTeleBot(TeleBot, object):
 
 
 def create_shop_telebot(token):
-    print 'Get bot function run'
     bot = ShopTeleBot(token)
     return bot
 

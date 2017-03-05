@@ -60,6 +60,8 @@ def send_mail_to_the_shop(text):
 class TextCommandEnum(object):
     GET_CATALOG = u'/get_catalog_'
     GET_PRODUCT = u'/get_it_'
+    BACK = u'назад'
+    FAQ = u'faq'
 
 
 def get_request_data(request):

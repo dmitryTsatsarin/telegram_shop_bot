@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from telebot import types
 
 from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop
-from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap
+from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
 from shop_bot_app.utils import create_shop_telebot
 
 logger = logging.getLogger(__name__)
@@ -65,19 +65,18 @@ def initialize_bot_with_routing(token, session):
         shop_telebot.send_message(message.chat.id, "Сделайте ваш выбор:", reply_markup=menu_markup)
 
 
-    @shop_telebot.message_handler(func=lambda message: message.text.lower().startswith(u'faq'), content_types=['text'])
+    @shop_telebot.message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.FAQ), content_types=['text'])
     def handle_faq(message):
-        text_out = u'Наши контакты\n +711111111111'
-        shop_telebot.send_message(message.chat.id, text_out)
 
-        text_out = u'Вопрос 1\n Ответ1'
-        shop_telebot.send_message(message.chat.id, text_out)
-
-        text_out = u'Вопрос 2\n Ответ2'
-        shop_telebot.send_message(message.chat.id, text_out)
-
-        text_out = u'Вопрос 3\n Ответ3'
-        shop_telebot.send_message(message.chat.id, text_out)
+        faqs = list(FAQ.objects.filter(bot_id=bot_id))
+        if faqs:
+            for faq in faqs:
+                question = faq.question
+                answer = faq.answer
+                text_out = u'%s\n%s' % (question, answer)
+                shop_telebot.send_message(message.chat.id, text_out)
+        else:
+            shop_telebot.send_message(message.chat.id, u'Раздел помощи пуст')
 
 
     @shop_telebot.message_handler(func=lambda message: message.text.lower().startswith(u'каталог'), content_types=['text'])
@@ -157,6 +156,7 @@ def initialize_bot_with_routing(token, session):
 
         markup = types.ReplyKeyboardMarkup(row_width=1)
         phone_btn = types.KeyboardButton(u'отправить номер телефона', request_contact=True)
+        back_btn = types.KeyboardButton(u'Назад', request_contact=True)
         markup.add(phone_btn)
         text_out = u'*Заказ оформлен* (%s).\n\n Укажите ваш номер телефона и менеджер вам перезвонит' % product.name
         shop_telebot.send_message(call.message.chat.id, text_out, reply_markup=markup, parse_mode='markdown')

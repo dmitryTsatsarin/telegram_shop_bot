@@ -121,3 +121,10 @@ class Bot(models.Model):
         initialize_webhook_for_bot(self.telegram_token)
 
 
+class FAQ(models.Model):
+    bot = models.ForeignKey(Bot)
+    question = models.CharField(max_length=255)
+    answer = models.CharField(max_length=1000)
+
+
+
