@@ -127,4 +127,5 @@ class FAQ(models.Model):
     answer = models.CharField(max_length=1000)
 
 
-
+    def __unicode__(self):
+        return u'%s' % self.question

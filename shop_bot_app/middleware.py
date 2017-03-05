@@ -121,9 +121,10 @@ class TsdLoggingMiddleware(MiddlewareMixin, object):
         Create the logging message..
         """
         try:
-            skip_it = '/admin'
-            if request.get_full_path().startswith(skip_it):
-                return response
+            skip_it_list = ['/admin', '/grappelli']
+            for skip_it in skip_it_list:
+                if request.get_full_path().startswith(skip_it):
+                    return response
 
             log_dict = create_log_dict(request, response)
 

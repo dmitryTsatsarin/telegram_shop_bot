@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 
 from shop_bot_app.models import Product, Order, Buyer, Feedback, PostponedPost, PostponedPostResult, Catalog, BotAdministratorProfile, Bot, BotBuyerMap, FAQ
@@ -44,8 +45,15 @@ class BotBuyerMapAdmin(admin.ModelAdmin):
     pass
 
 
+class FAQAdminForm(forms.ModelForm):
+    answer = forms.CharField(widget=forms.Textarea)
+    class Meta:
+        model = FAQ
+        fields = ['question', 'answer', 'bot']
+
+
 class FAQAdmin(admin.ModelAdmin):
-    pass
+    form = FAQAdminForm
 
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
