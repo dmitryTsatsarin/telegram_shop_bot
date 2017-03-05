@@ -23,7 +23,7 @@ def webhooks(request, token):
             logger.info(u'data=%s' % json_string.decode('unicode-escape'))
 
             if Bot.objects.filter(telegram_token=token).exists():
-                shop_telebot = initialize_bot_with_routing(token, request.session)
+                shop_telebot = initialize_bot_with_routing(token)
                 shop_telebot.process_new_updates([update])
             else:
                 logger.error('Token "%s" is not found' % token)

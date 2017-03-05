@@ -4,6 +4,8 @@ import logging
 from django.conf import settings
 from django.core.files.images import ImageFile
 from django.core.mail import send_mail
+from django.core.cache import cache
+
 from telebot import types
 
 from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop
@@ -28,7 +30,7 @@ def send_schedule_product(telegram_user_id, product_id, text_before):
     shop_telebot.send_photo(telegram_user_id, image_file, caption=caption, reply_markup=markup)
 
 
-def initialize_bot_with_routing(token, session):
+def initialize_bot_with_routing(token):
     shop_telebot = create_shop_telebot(token)
     bot_id = Bot.objects.get(telegram_token=token).id
 
@@ -139,7 +141,7 @@ def initialize_bot_with_routing(token, session):
         buyer.save()
         text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
         shop_telebot.send_message(message.chat.id, text_out, reply_markup=menu_markup)
-        text = u'Создан заказ %s' % session.get('order')
+        text = u'Создан заказ %s' % cache.get('order', version=message.chat.id)
         send_mail_to_the_shop(text)
 
 
@@ -152,7 +154,7 @@ def initialize_bot_with_routing(token, session):
         order = Order.objects.create(buyer=buyer, product=product)
         info_text = u'Заказ id=%s создан' % order.id
         logger.info(info_text)
-        session['order'] = order.id
+        cache.set('order', order.id, version=call.message.chat.id)
 
         markup = types.ReplyKeyboardMarkup(row_width=1)
         phone_btn = types.KeyboardButton(u'отправить номер телефона', request_contact=True)
