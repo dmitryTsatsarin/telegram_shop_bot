@@ -85,13 +85,17 @@ def initialize_bot_with_routing(token):
     def handle_catalog(message):
         catalogs = list(Catalog.objects.filter(bot_id=bot_id))
         markup = types.InlineKeyboardMarkup()
-        for catalog in catalogs:
-            order_command = u'/get_catalog_%s' % catalog.id
-            products_count = Product.objects.filter(catalog_id=catalog.id, bot_id=bot_id).count()
-            text = u'%s (%s)' % (catalog.name, products_count)
-            callback_button = types.InlineKeyboardButton(text=text, callback_data=order_command)
-            markup.add(callback_button)
-        shop_telebot.send_message(message.chat.id, 'Каталоги', reply_markup=markup)
+        if catalogs:
+            for catalog in catalogs:
+                order_command = u'/get_catalog_%s' % catalog.id
+                products_count = Product.objects.filter(catalog_id=catalog.id, bot_id=bot_id).count()
+                text = u'%s (%s)' % (catalog.name, products_count)
+                callback_button = types.InlineKeyboardButton(text=text, callback_data=order_command)
+                markup.add(callback_button)
+            shop_telebot.send_message(message.chat.id, 'Каталоги', reply_markup=markup)
+        else:
+            shop_telebot.send_message(message.chat.id, 'Каталогов нет :(', reply_markup=markup)
+
 
     @shop_telebot.callback_query_handler(func=lambda call: call.data.lower().startswith(TextCommandEnum.GET_CATALOG))
     def handle_show_catalog_products(call):
@@ -156,13 +160,20 @@ def initialize_bot_with_routing(token):
         logger.info(info_text)
         cache.set('order', order.id, version=call.message.chat.id)
 
-        markup = types.ReplyKeyboardMarkup(row_width=1)
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         phone_btn = types.KeyboardButton(u'отправить номер телефона', request_contact=True)
-        back_btn = types.KeyboardButton(u'Назад', request_contact=True)
+        back_btn = types.KeyboardButton(u'Назад')
         markup.add(phone_btn)
+        markup.add(back_btn)
         text_out = u'*Заказ оформлен* (%s).\n\n Укажите ваш номер телефона и менеджер вам перезвонит' % product.name
         shop_telebot.send_message(call.message.chat.id, text_out, reply_markup=markup, parse_mode='markdown')
 
+
+    @shop_telebot.message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.BACK), content_types=['text'])
+    def handle_send_message_to_administator_preview(message):
+
+        text_out = 'Возврат в начало'
+        shop_telebot.send_message(message.chat.id, text_out, reply_markup=menu_markup)
 
     @shop_telebot.message_handler(func=lambda message: message.text.lower().startswith(u'задать вопрос'), content_types=['text'])
     def handle_send_message_to_administator_preview(message):
