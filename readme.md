@@ -15,9 +15,20 @@
 	python manage.py celery -A telegram_shop_bot worker -l info --events -c 1 --settings=telegram_shop_bot.settings.prod
 	
 	
+**Регламент первой установки**
+1) обновить исходники
+2) установить пакеты через pip
+3) выполнить миграции
+4) собрать статику
+5) создать таблицу кэша (python manage.py createcachetable)
+6) перечитать конфиги supervisor
+7) стартануть web-сервер через supervisor
+
+
 **Регламент обновления**
 1) обновить исходники
 2) установить пакеты через pip
 3) сделать бекап БД
 4) выполнить миграции
 5) перезагрузить web-сервер через supervisor
+
