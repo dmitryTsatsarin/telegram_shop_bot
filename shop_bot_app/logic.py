@@ -2,13 +2,12 @@
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.images import ImageFile
 from django.core.mail import send_mail
-from django.core.cache import cache
-
 from telebot import types
 
-from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop
+from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri
 from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
 from shop_bot_app.utils import create_shop_telebot
 
@@ -87,7 +86,7 @@ def initialize_bot_with_routing(token):
         markup = types.InlineKeyboardMarkup()
         if catalogs:
             for catalog in catalogs:
-                order_command = u'/get_catalog_%s' % catalog.id
+                order_command = u'/get_catalog?catalog_id=%s' % catalog.id
                 products_count = Product.objects.filter(catalog_id=catalog.id, bot_id=bot_id).count()
                 text = u'%s (%s)' % (catalog.name, products_count)
                 callback_button = types.InlineKeyboardButton(text=text, callback_data=order_command)
@@ -99,12 +98,24 @@ def initialize_bot_with_routing(token):
 
     @shop_telebot.callback_query_handler(func=lambda call: call.data.lower().startswith(TextCommandEnum.GET_CATALOG))
     def handle_show_catalog_products(call):
-        catalog_id = int(call.data.lower().replace(TextCommandEnum.GET_CATALOG, ''))
 
-        queryset = Product.objects.filter(bot_id=bot_id, catalog_id=catalog_id).order_by('-id')[:10]
-        all_products = list(queryset)
+        limit = 5
+        query_dict = get_query_dict(call.data)
+        catalog_id_str = query_dict.get('catalog_id')
+        catalog_id = int(catalog_id_str) if catalog_id_str else None
+        offset = int(query_dict.get('offset', 0))
+
+        if not catalog_id:
+            logger.error(u'Каталог не найден (%s)' % call.data)
+            shop_telebot.send_message(call.message.chat.id, u'Неккорректная ссылка каталога, выберете другой каталог')
+            return
+
+        queryset = Product.objects.filter(bot_id=bot_id, catalog_id=catalog_id).order_by('-id')
+        product_count = queryset.count()
+
+        products = list(queryset[offset:offset+limit])
         # todo: возможно стоит вынести общую часть в отдельные функции
-        for product in all_products:
+        for product in products:
             image_file = ImageFile(product.picture)
             order_command = u'%s%s' % (TextCommandEnum.GET_PRODUCT, product.id)
             caption = u'%s\n%s' % (product.name, product.description)
@@ -113,27 +124,56 @@ def initialize_bot_with_routing(token):
             callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
             markup.add(callback_button)
             shop_telebot.send_photo(call.message.chat.id, image_file, caption=caption, reply_markup=markup)
-        if not all_products:
+        if product_count > offset + limit:
+            new_offset = offset + limit
+            more_command = create_uri(TextCommandEnum.GET_CATALOG, catalog_id=catalog_id, offset=new_offset)
+            markup = types.InlineKeyboardMarkup()
+            rest_amount = product_count - new_offset
+            callback_button = types.InlineKeyboardButton(text=u"Показать еще 5 ( %s не показано)" % rest_amount, callback_data=more_command)
+            markup.add(callback_button)
+            shop_telebot.send_message(call.message.chat.id, u'Показать другие товары?', reply_markup=markup)
+        if not products:
             shop_telebot.send_message(call.message.chat.id, u'Каталог пуст')
 
 
-    @shop_telebot.message_handler(func=lambda message: message.text.lower().startswith(u'распродажа'), content_types=['text'])
-    def handle_catalog_discount(message):
-        queryset = Product.objects.filter(bot_id=bot_id, is_discount=True).order_by('-id')[:10]
-        products = list(queryset)
+    def core_handle_more_catalog_discount_products(message, data=None):
+        limit = 5
 
+        if data:
+            query_dict = get_query_dict(data)
+            offset = int(query_dict.get('offset', 0))
+        else:
+            offset = 0
+
+        queryset = Product.objects.filter(bot_id=bot_id, is_discount=True).order_by('-id')
+        product_count = queryset.count()
+
+        products = list(queryset[offset:offset + limit])
         for product in products:
-            image_file = ImageFile(product.picture)
-            order_command = u'/get_it_%s' % product.id
-            caption = u'%s\n%s\n%s\nТОРОПИТЕСЬ ТОВАР НА СКИДКЕ' % (product.name, product.description, product.price)
+            generate_and_send_discount_product(product, shop_telebot, message)
 
+        if product_count > offset + limit:
+            new_offset = offset + limit
+            more_command = create_uri(TextCommandEnum.SALE, offset=new_offset)
             markup = types.InlineKeyboardMarkup()
-            callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
+            rest_amount = product_count - new_offset
+            callback_button = types.InlineKeyboardButton(text=u"Показать еще 5 ( %s не показано)" % rest_amount, callback_data=more_command)
             markup.add(callback_button)
+            shop_telebot.send_message(message.chat.id, u'Показать другие товары?', reply_markup=markup)
 
-            shop_telebot.send_photo(message.chat.id, image_file, caption=caption, reply_markup=markup)
         if not products:
             shop_telebot.send_message(message.chat.id, u'Нет товара на скидке')
+
+
+    @shop_telebot.message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.SALE), content_types=['text'])
+    def handle_catalog_discount(message):
+        return core_handle_more_catalog_discount_products(message)
+
+
+    @shop_telebot.callback_query_handler(func=lambda call: call.data.lower().startswith(TextCommandEnum.SALE))
+    def handle_more_catalog_discount_products(call):
+        return core_handle_more_catalog_discount_products(call.message, call.data)
+
 
 
     @shop_telebot.message_handler(content_types=['contact'])

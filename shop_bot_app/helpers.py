@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
+from urlparse import urlparse
+from django.http import QueryDict
+from django.utils.http import urlencode
 from django.core.mail import send_mail
-
+from telebot import types
 
 from shop_bot_app.models import Bot
+from django.core.files.images import ImageFile
 
 __author__ = 'forward'
 
@@ -58,10 +62,11 @@ def send_mail_to_the_shop(text):
 
 
 class TextCommandEnum(object):
-    GET_CATALOG = u'/get_catalog_'
+    GET_CATALOG = u'/get_catalog'
     GET_PRODUCT = u'/get_it_'
     BACK = u'назад'
     FAQ = u'faq'
+    SALE = u'распродажа'
 
 
 def get_request_data(request):
@@ -70,3 +75,28 @@ def get_request_data(request):
     request_data = request.body.decode('utf-8')
     request.request_data = request_data
     return request_data
+
+
+
+def generate_and_send_discount_product(product, shop_telebot, message):
+    image_file = ImageFile(product.picture)
+    order_command = u'/get_it_%s' % product.id
+    caption = u'%s\n%s\n%s\nТОРОПИТЕСЬ ТОВАР НА СКИДКЕ' % (product.name, product.description, product.price)
+
+    markup = types.InlineKeyboardMarkup()
+    callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
+    markup.add(callback_button)
+
+    shop_telebot.send_photo(message.chat.id, image_file, caption=caption, reply_markup=markup)
+
+
+def get_query_dict(uri):
+    if '?' in uri:
+        query_dict = QueryDict(urlparse(uri).query)
+    else:
+        query_dict = QueryDict(uri)
+    return query_dict
+
+
+def create_uri(url, **params):
+    return "%s?%s" % (url, urlencode(params))
