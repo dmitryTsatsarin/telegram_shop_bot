@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from os.path import splitext
 import uuid
 
@@ -116,6 +116,16 @@ class Bot(models.Model):
         return u'%s' % self.name
 
     def save(self, *args, **kwargs):
+        group_name = 'bot_administrator_group'
+        group = Group.objects.filter(name=group_name).get()
+        if not self.administrator:
+            username = '%s%s' % (self.name, 'Administrator')
+            password = User.objects.make_random_password()
+            user = User.objects.create_user(username=username, password=password, is_staff=True)
+            BotAdministratorProfile.objects.create(user_id=user.id)
+            user.groups.add(group)
+            self.administrator = user
+
         super(Bot, self).save(*args, **kwargs)
 
         from shop_bot_app.helpers import initialize_webhook_for_bot
