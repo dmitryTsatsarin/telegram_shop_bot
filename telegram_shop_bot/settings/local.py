@@ -73,6 +73,11 @@ LOGGING = {
             'handlers': ['console', 'sentry'],
             'propagate': False,
         },
+        'shop_bot_app.admin': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': False,
+        },
     },
 }
 
