@@ -185,3 +185,5 @@ CELERYBEAT_SCHEDULE = {
 }
 
 LOGUTILS_REQUEST_TIME_THRESHOLD = 3 # уведомлять о всех запросах дольше 3 секунд
+GRAPPELLI_SWITCH_USER = True
+GRAPPELLI_ADMIN_TITLE = 'Artbelka Bots'
