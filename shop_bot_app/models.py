@@ -69,9 +69,10 @@ class Feedback(models.Model):
 
 
 class PostponedPost(models.Model):
+    bot = models.ForeignKey('Bot')
     title = models.CharField(max_length=100, verbose_name=u'Заголовок')
     description = models.TextField(verbose_name=u'Описание преложения/новости')
-    product = models.ForeignKey(Product, verbose_name=u'Товар')
+    product = models.ForeignKey(Product, verbose_name=u'Товар', null=True, blank=True)
     send_at = models.DateTimeField(verbose_name=u'Отправить в')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -105,7 +106,7 @@ class BotAdministratorProfile(models.Model):
 
 
 class Bot(models.Model):
-    administrator = models.ForeignKey(BotAdministratorProfile, null=True, blank=True)
+    administrator = models.ForeignKey(User, null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     telegram_token = models.CharField(max_length=255, null=True, blank=True)
     #is_bot_for_testing = models.BooleanField(default=True)
