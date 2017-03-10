@@ -16,7 +16,7 @@ DEBUG = False
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'shop_bot',
+        'NAME': 'shop_bot_prod',
         'USER': 'webrunner',
         'PASSWORD': 'ZHkv8GD4Zab2g4HHNqPn',
         'HOST': 'localhost',
