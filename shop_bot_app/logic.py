@@ -226,7 +226,8 @@ class BotView(object):
         # дефолтный хэдлер, если не нашло подходящий
         text_out = u'Команда "%s" не найдена, попробуйте выбрать другую команду' % message.text
         self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
-        logger.warning(u'Запрос не обработался: %s' % message)
+        if not settings.DEBUG:
+            logger.warning(u'Запрос не обработался: %s' % message)
 
 
 
