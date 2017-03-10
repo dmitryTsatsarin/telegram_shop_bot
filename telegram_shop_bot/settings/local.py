@@ -78,6 +78,11 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        'TeleBot': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
     },
 }
 

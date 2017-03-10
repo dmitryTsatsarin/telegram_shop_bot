@@ -5,8 +5,8 @@ import telebot as telebot_lib
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 
+from shop_bot_app.bot_routing import initialize_bot_with_routing2
 from shop_bot_app.helpers import get_request_data
-from shop_bot_app.logic import initialize_bot_with_routing
 from shop_bot_app.models import Bot
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ def webhooks(request, token):
             logger.info(u'data=%s' % json_string.decode('unicode-escape'))
 
             if Bot.objects.filter(telegram_token=token).exists():
-                shop_telebot = initialize_bot_with_routing(token)
+                shop_telebot = initialize_bot_with_routing2(token)
                 shop_telebot.process_new_updates([update])
             else:
                 logger.error('Token "%s" is not found' % token)
