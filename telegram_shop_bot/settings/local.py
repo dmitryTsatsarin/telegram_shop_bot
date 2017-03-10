@@ -6,7 +6,7 @@ import os
 import raven
 
 RAVEN_CONFIG = {
-    'dsn': 'https://87ee6b086aa2451ba3af12e24b3020ea:6b5d14816e8a401585c8a399c6dcf4e3@sentry.io/140482',
+    'dsn': 'https://ca28f6cb4c604e5a85d1c9da45008188:631028d4eeff4bfd8da216c1d01ef1e4@sentry.io/146778',
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
@@ -88,8 +88,14 @@ LOGGING = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'shop_bot',
+        'USER': 'forward',
+        'PASSWORD': 'ccfd2271a007bb8ba6db',
+        'HOST': 'localhost',
+        'PORT': 5432,
     },
     'stat': {
         'ENGINE': 'django.db.backends.sqlite3',
