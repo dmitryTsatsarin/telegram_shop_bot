@@ -69,6 +69,10 @@ class TextCommandEnum(object):
     SALE = u'распродажа'
 
 
+class CacheKey(object):
+    QUESTION_TO_ADMIN = 'question_to_admin'
+
+
 def get_request_data(request):
     if hasattr(request, 'request_data'):
         return request.request_data
@@ -100,3 +104,4 @@ def get_query_dict(uri):
 
 def create_uri(url, **params):
     return "%s?%s" % (url, urlencode(params))
+

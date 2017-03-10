@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import sys
+import traceback
 import telebot as telebot_lib
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
@@ -32,6 +34,7 @@ def webhooks(request, token):
             print 'Forbiden for %s' % request.body
             return HttpResponseForbidden()
     except Exception as e:
-        logger.error('Uncached error %s' % e)
+        t, v, tb = sys.exc_info()
+        traceback.print_exc(tb, file=sys.stdout)
         raise
 

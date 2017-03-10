@@ -7,7 +7,7 @@ from django.core.files.images import ImageFile
 from django.core.mail import send_mail
 from telebot import types
 
-from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri
+from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey
 from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
 from shop_bot_app.utils import create_shop_telebot
 
@@ -207,9 +207,8 @@ class BotView(object):
 
     def handle_send_message_to_administator_preview(self, message):
         text_out = u'Задайте вопрос администратору:'
-
-        markup = types.ForceReply()
-        self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=markup)
+        cache.set(CacheKey.QUESTION_TO_ADMIN, True, version=message.chat.id)
+        self.shop_telebot.send_message(message.chat.id, text_out)
 
 
     def handle_send_message_to_administator(self, message):
@@ -226,7 +225,7 @@ class BotView(object):
     def handle_default(self, message):
         # дефолтный хэдлер, если не нашло подходящий
         text_out = u'Команда "%s" не найдена, попробуйте выбрать другую команду' % message.text
-        self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=menu_markup)
+        self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
         logger.warning(u'Запрос не обработался: %s' % message)
 
 
