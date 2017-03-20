@@ -40,6 +40,18 @@ def initialize_all_webhooks():
     print 'Инициализация закончена'
 
 
+def initialize_one_webhook(bot_name):
+    print 'Инициализация начата'
+    bot = Bot.objects.filter(name=bot_name).get()
+    shop_telebot = create_shop_telebot(bot.telegram_token)
+    shop_telebot.remove_webhook()
+
+    # Ставим заново вебхук
+    url = get_webhook_url(bot.telegram_token)
+    print 'bot = %s, url=%s' % (bot.name, url)
+    shop_telebot.set_webhook(url=url)
+    print 'Инициализация закончена'
+
 def initialize_webhook_for_bot(token):
     print 'Инициализация начата'
     shop_telebot = create_shop_telebot(token)

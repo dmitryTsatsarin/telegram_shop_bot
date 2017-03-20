@@ -41,6 +41,7 @@ class CustomModelAdmin(admin.ModelAdmin, GetBotMixin):
 
 
 class ProductAdmin(CustomModelAdmin):
+    list_display = ['name', 'id', ]
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(self.__class__, self).get_form(request, obj, **kwargs)
@@ -85,7 +86,7 @@ class BotAdministratorProfileAdmin(admin.ModelAdmin):
 
 
 class BotAdmin(admin.ModelAdmin):
-    readonly_fields = ['administrator']
+    #readonly_fields = ['administrator']
 
     def get_queryset(self, request):
         qs = super(BotAdmin, self).get_queryset(request)
