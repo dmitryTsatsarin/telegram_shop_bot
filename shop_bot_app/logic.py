@@ -7,7 +7,7 @@ from django.core.files.images import ImageFile
 from django.core.mail import send_mail
 from telebot import types
 
-from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey
+from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile
 from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
 from shop_bot_app.utils import create_shop_telebot
 
@@ -198,11 +198,12 @@ class BotView(object):
         back_btn = types.KeyboardButton(u'Назад')
         markup.add(phone_btn)
         markup.add(back_btn)
+        cache.set(CacheKey.NEED_PHONE, True, version=call.message.chat.id)
         text_out = u'*Заказ оформлен* (%s).\n\n Укажите ваш номер телефона и менеджер вам перезвонит' % product.name
         self.shop_telebot.send_message(call.message.chat.id, text_out, reply_markup=markup, parse_mode='markdown')
 
     def handle_send_message_to_administator_preview_back(self, message):
-        text_out = 'Возврат в начало'
+        text_out = u'Возврат в начало'
         self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
 
     def handle_send_message_to_administator_preview(self, message):
@@ -210,6 +211,9 @@ class BotView(object):
         cache.set(CacheKey.QUESTION_TO_ADMIN, True, version=message.chat.id)
         self.shop_telebot.send_message(message.chat.id, text_out)
 
+    def handle_need_phone(self, message):
+        text_out = u"Так не пойдет, нажми кнопку 'отправить номер телефона'. Если не получится, нужно обновить Telegramку %s" % Smile.SMILING_FACE_WITH_SMILING_EYE
+        self.shop_telebot.send_message(message.chat.id, text_out)
 
     def handle_send_message_to_administator(self, message):
         buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()

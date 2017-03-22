@@ -83,6 +83,11 @@ class TextCommandEnum(object):
 
 class CacheKey(object):
     QUESTION_TO_ADMIN = 'question_to_admin'
+    NEED_PHONE = 'need_phone'
+
+
+class Smile(object):
+    SMILING_FACE_WITH_SMILING_EYE = u"\U0001F60A"
 
 
 def get_request_data(request):

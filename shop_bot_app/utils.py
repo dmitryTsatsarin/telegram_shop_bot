@@ -49,7 +49,10 @@ class ShopTeleBot(TeleBot, object):
             message = instance.message
         else:
             message = instance
-        dont_response_on_old_request(message)
+        # временно отключено, так как блокировало по нажатию на старые кнопки. От спама в текущей реализации не спасает. Подумать о другом варианте
+        #dont_response_on_old_request(message)
+
+        super(ShopTeleBot, self)._exec_task(*args, **kwargs)
 
 
 def create_shop_telebot(token):
