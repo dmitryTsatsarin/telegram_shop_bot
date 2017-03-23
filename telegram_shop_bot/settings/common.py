@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'raven.contrib.django.raven_compat',
     'djcelery',
+    'sorl.thumbnail',
     'shop_bot_app'
 ]
 
@@ -66,8 +67,10 @@ ROOT_URLCONF = 'telegram_shop_bot.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, '../../templates')]
-        ,
+        'DIRS': [
+            os.path.join(BASE_DIR, '../../templates'),
+            'templates'
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -176,6 +179,14 @@ CACHES = {
         'LOCATION': 'tsd_cache_table',
     }
 }
+
+# CELERY_ROUTES = {
+#     'shop_bot_app.tasks.CollectorTask': {'queue': 'collector'}
+# }
+#
+# CELERY_IMPORTS = (
+#     'shop_bot_app.tasks',
+# )
 
 CELERYBEAT_SCHEDULE = {
     'post_by_schedule': {
