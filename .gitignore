@@ -96,5 +96,4 @@ ENV/
 media/
 
 static/
-telegram_shop_bot/db.sqlite3
-templates/
+

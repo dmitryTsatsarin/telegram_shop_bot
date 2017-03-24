@@ -88,9 +88,13 @@ ALLOWED_HOSTS = ['*', '46.101.235.119']
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 BROKER_URL = 'amqp://rabbitusername:6cae046bd8de29@localhost:5672//telegram_shop_bot'
 
-WEBHOOK_HOST = 'bots.artbelka.by'
-WEBHOOK_LISTEN = 'bots.artbelka.by'
+WEBSITE_HOST = 'bots.artbelka.by'
+WEBHOOK_HOST = WEBSITE_HOST
+WEBHOOK_LISTEN = WEBSITE_HOST
 WEBHOOK_PORT = 443
 WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
+WEBSITE_BASE_URL = 'https://%s' % WEBSITE_HOST
+
+
 #WEBHOOK_SSL_CERT = '/etc/letsencrypt/live/bots.artbelka.miramik.ru/fullchain.pem'
 #WEBHOOK_SSL_PRIV = '/etc/letsencrypt/live/bots.artbelka.miramik.ru/privkey.pem'

@@ -7,6 +7,7 @@ from django.core.files.images import ImageFile
 from django.core.mail import send_mail
 from telebot import types
 
+
 from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile
 from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
 from shop_bot_app.utils import create_shop_telebot
@@ -180,8 +181,9 @@ class BotView(object):
         buyer.save()
         text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
         self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
-        text = u'Создан заказ %s' % cache.get('order', version=message.chat.id)
-        send_mail_to_the_shop(text)
+        order_id = cache.get('order', version=message.chat.id)
+        order = Order.objects.get(id=order_id)
+        send_mail_to_the_shop(order)
 
     def callback_catalog_order(self, call):
         logger.debug('Оформление заказа')

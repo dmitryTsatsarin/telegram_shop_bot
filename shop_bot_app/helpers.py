@@ -3,6 +3,7 @@ from urlparse import urlparse
 from django.http import QueryDict
 from django.utils.http import urlencode
 from django.core.mail import send_mail
+from django.template import loader
 from telebot import types
 
 from shop_bot_app.models import Bot
@@ -10,20 +11,11 @@ from django.core.files.images import ImageFile
 
 __author__ = 'forward'
 
+import logging
+logger = logging.getLogger(__name__)
+
 from  shop_bot_app.utils import create_shop_telebot
 from django.conf import settings
-#
-# def initialize_bot_cert():
-#     print 'Инициализация начата'
-#     bot = TeleBot(settings.TELEGRAM_TOKEN)
-#     bot.remove_webhook()
-#
-#     # Ставим заново вебхук
-#     # bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH, certificate=open(settings.WEBHOOK_SSL_CERT, 'r'))
-#     url = '%s%s' % (settings.WEBHOOK_URL_BASE, settings.WEBHOOK_URL_PATH)
-#     print 'url=%s' % url
-#     bot.set_webhook(url=url)
-#     print 'Инициализация закончена'
 
 
 def initialize_all_webhooks():
@@ -68,9 +60,26 @@ def get_webhook_url(token):
     return "%s/webhooks/%s/" % (settings.WEBHOOK_URL_BASE, token)
 
 
-def send_mail_to_the_shop(text):
+def send_mail_to_the_shop(order):
     shop_administrator_email = settings.EMAIL_BOT_ADMIN # на данный момент пока администратор магазина это админ
-    send_mail(u'От бота артбелки', text, settings.EMAIL_FULL_ADDRESS, [shop_administrator_email])
+
+    thumb_url = order.product.picture['400x400'].url
+
+    context = {
+        'order_id': order.id,
+        'product_picture': "%s%s" % (settings.WEBSITE_BASE_URL, thumb_url),
+        'product_name': order.product.name,
+        'product_description': order.product.description,
+        'product_price': order.product.price,
+        'buyer_name': '%s %s' % (order.buyer.first_name, order.buyer.last_name),
+        'buyer_phone': order.buyer.phone
+    }
+
+    html_message = loader.render_to_string('order_mail.html', context)
+    text = ''
+    logger.debug('Отправка письма')
+    send_mail(u'От бота артбелки', text, settings.EMAIL_FULL_ADDRESS, [shop_administrator_email], html_message=html_message)
+    logger.debug('письмо отправлено')
 
 
 class TextCommandEnum(object):

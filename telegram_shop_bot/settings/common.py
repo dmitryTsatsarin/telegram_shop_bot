@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 
 MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'media')
 STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static')
+MEDIA_URL = '/media/'
 
 
 # Application definition
@@ -46,7 +47,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'raven.contrib.django.raven_compat',
     'djcelery',
-    'sorl.thumbnail',
+    'easy_thumbnails',
     'shop_bot_app'
 ]
 
@@ -84,18 +85,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'telegram_shop_bot.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -198,3 +187,11 @@ CELERYBEAT_SCHEDULE = {
 LOGUTILS_REQUEST_TIME_THRESHOLD = 3 # уведомлять о всех запросах дольше 3 секунд
 GRAPPELLI_SWITCH_USER = True
 GRAPPELLI_ADMIN_TITLE = 'Artbelka Bots'
+
+
+THUMBNAIL_ALIASES = {
+    '': {
+        'avatar': {'size': (50, 50), 'crop': True},
+        '400x400': {'size': (400, 400), 'crop': True},
+    },
+}

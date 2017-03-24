@@ -6,6 +6,9 @@ from django.contrib.auth.models import User, Group
 from os.path import splitext
 import uuid
 
+from easy_thumbnails.fields import ThumbnailerImageField
+
+
 def rename_and_upload_path(instance, filename):
     _, ext = splitext(filename)
 
@@ -19,7 +22,7 @@ class Product(models.Model):
     bot = models.ForeignKey('Bot')
     name = models.CharField(max_length=255)
     description = models.TextField()
-    picture = models.ImageField(upload_to=rename_and_upload_path)
+    picture = ThumbnailerImageField(upload_to=rename_and_upload_path)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     catalog = models.ForeignKey('Catalog', null=True)
     is_discount = models.BooleanField(default=False)

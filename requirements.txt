@@ -10,3 +10,4 @@ django-logutils==0.4.2
 #sorl-thumbnail==12.3
 django-grappelli==2.9.1
 psycopg2==2.7
+easy-thumbnails==2.3
