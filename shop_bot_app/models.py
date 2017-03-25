@@ -112,6 +112,7 @@ class Bot(models.Model):
     administrator = models.ForeignKey(User, null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     telegram_token = models.CharField(max_length=255, null=True, blank=True)
+    order_email = models.EmailField(null=True, help_text='Сюда будет отправляться информация о заказе')
     #is_bot_for_testing = models.BooleanField(default=True)
     #telegram_token_test = models.CharField(max_length=255, null=True, blank=True, help_text=u'Токен телеграмма для тестрования')
 

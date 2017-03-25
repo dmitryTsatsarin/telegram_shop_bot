@@ -61,7 +61,9 @@ def get_webhook_url(token):
 
 
 def send_mail_to_the_shop(order):
-    shop_administrator_email = settings.EMAIL_BOT_ADMIN # на данный момент пока администратор магазина это админ
+
+    shop_administrator_email = order.product.bot.order_email
+    artbelka_administrator_email = settings.EMAIL_BOT_ADMIN
 
     thumb_url = order.product.picture['400x400'].url
 
@@ -78,7 +80,11 @@ def send_mail_to_the_shop(order):
     html_message = loader.render_to_string('order_mail.html', context)
     text = ''
     logger.debug('Отправка письма')
-    send_mail(u'От бота артбелки', text, settings.EMAIL_FULL_ADDRESS, [shop_administrator_email], html_message=html_message)
+    if shop_administrator_email:
+        send_mail(u'От бота артбелки', text, settings.EMAIL_FULL_ADDRESS, [shop_administrator_email], html_message=html_message)
+    else:
+        logger.warning(u'Осуществлен заказ id=%s, но не указан email для заказов. Нужно срочно узнать кто владелец бота' % order.id)
+    send_mail(u'От бота артбелки', text, settings.EMAIL_FULL_ADDRESS, [artbelka_administrator_email], html_message=html_message)
     logger.debug('письмо отправлено')
 
 
