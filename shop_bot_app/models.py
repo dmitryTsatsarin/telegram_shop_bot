@@ -30,6 +30,10 @@ class Product(models.Model):
     def __unicode__(self):
         return self.name
 
+    def get_400x400_picture_file(self):
+        image_file = open(self.picture['400x400'].path)
+        return image_file
+
 
 class BotBuyerMap(models.Model):
     buyer = models.ForeignKey('Buyer', related_name='bot_buyer_map_rel')

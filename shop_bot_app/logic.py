@@ -7,7 +7,6 @@ from django.core.files.images import ImageFile
 from django.core.mail import send_mail
 from telebot import types
 
-
 from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile
 from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
 from shop_bot_app.utils import create_shop_telebot
@@ -19,7 +18,8 @@ to_log = logger.info
 def send_schedule_product(telegram_user_id, product_id, text_before):
     product = Product.objects.filter(id=product_id).get()
 
-    image_file = ImageFile(product.picture)
+    image_file = product.get_400x400_picture_file()
+
     order_command = u'/get_it_%s' % product.id
     caption = u'%s\nНаименование: %s\nОписание: %s\nЦена: %s' % (text_before, product.name, product.description, product.price)
 
@@ -120,7 +120,7 @@ class BotView(object):
         products = list(queryset[offset:offset+limit])
         # todo: возможно стоит вынести общую часть в отдельные функции
         for product in products:
-            image_file = ImageFile(product.picture)
+            image_file = product.get_400x400_picture_file()
             order_command = u'%s%s' % (TextCommandEnum.GET_PRODUCT, product.id)
             caption = u'%s\n%s' % (product.name, product.description)
 
@@ -179,10 +179,18 @@ class BotView(object):
         buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()
         buyer.phone = phone_number
         buyer.save()
-        text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
-        self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
+
         order_id = cache.get('order', version=message.chat.id)
         order = Order.objects.get(id=order_id)
+
+        # дублирование отображения сделанного заказа
+        image_file = order.product.get_400x400_picture_file()
+        caption = u'Вы заказали:\n%s\n%s' % (order.product.name, order.product.description)
+        self.shop_telebot.send_photo(message.chat.id, image_file, caption=caption, reply_markup=self.menu_markup)
+
+        text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
+        self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
+
         send_mail_to_the_shop(order)
 
     def callback_catalog_order(self, call):

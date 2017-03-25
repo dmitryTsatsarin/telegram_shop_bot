@@ -192,6 +192,9 @@ GRAPPELLI_ADMIN_TITLE = 'Artbelka Bots'
 THUMBNAIL_ALIASES = {
     '': {
         'avatar': {'size': (50, 50), 'crop': True},
-        '400x400': {'size': (400, 400), 'crop': True},
+        '400x400': {'size': (400, 400), 'crop': 'scale'},
+        '400x400bad': {'size': (400, 400), 'crop': True, 'quality':10},
     },
 }
+
+THUMBNAIL_WIDGET_OPTIONS = {'size': (400, 400), 'crop': 'scale'}
