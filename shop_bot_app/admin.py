@@ -3,6 +3,9 @@ from django import forms
 from django.db import models
 from django.contrib import admin
 
+from easy_thumbnails.widgets import ImageClearableFileInput
+from easy_thumbnails.fields import ThumbnailerField
+
 from shop_bot_app.models import Product, Order, Buyer, Feedback, PostponedPost, PostponedPostResult, Catalog, BotAdministratorProfile, Bot, BotBuyerMap, FAQ
 
 
@@ -42,6 +45,10 @@ class CustomModelAdmin(admin.ModelAdmin, GetBotMixin):
 
 class ProductAdmin(CustomModelAdmin):
     list_display = ['name', 'id', ]
+
+    formfield_overrides = {
+        ThumbnailerField: {'widget': ImageClearableFileInput },
+    }
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(self.__class__, self).get_form(request, obj, **kwargs)
