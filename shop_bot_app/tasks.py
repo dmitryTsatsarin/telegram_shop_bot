@@ -4,6 +4,7 @@ import logging
 import arrow
 import telebot as telebot_lib
 from celery import shared_task
+from django.conf import settings
 
 from shop_bot_app.bot_routing import initialize_bot_with_routing2
 from shop_bot_app.logic import send_schedule_product
@@ -28,18 +29,24 @@ def post_by_schedule():
                 logger.info(u'Запущен PostponedPost с id=%s к buyer=(%s, %s)' % (postponed_post.id, buyer.id, buyer.full_name))
 
 
-
 class CollectorTask(app.Task):
     queue = 'collector'
 
     def run(self, token, json_string, **kwargs):
-        update = telebot_lib.types.Update.de_json(json_string)
-        # Эта функция обеспечивает проверку входящего сообщения
-        logger.info(u'data=%s' % json_string.decode('unicode-escape'))
+        try:
+            update = telebot_lib.types.Update.de_json(json_string)
+            logger.info(u'data=%s' % json_string.decode('unicode-escape'))
 
-        if Bot.objects.filter(telegram_token=token).exists():
-            shop_telebot = initialize_bot_with_routing2(token)
-            shop_telebot.process_new_updates([update])
-        else:
-            logger.error('Token "%s" is not found' % token)
+            if Bot.objects.filter(telegram_token=token).exists():
+                shop_telebot = initialize_bot_with_routing2(token)
+                shop_telebot.process_new_updates([update])
+            else:
+                logger.error('Token "%s" is not found' % token)
+        except Exception as e:
+            if settings.DEBUG:
+                logging.debug(e, exc_info=True) # logging, потому что это в celery логеры - это магия, пришел опытным путем и гуглением (((((
+            else:
+                logger.exception(e)
+                raise
+
 
