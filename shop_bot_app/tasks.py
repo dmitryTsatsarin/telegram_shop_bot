@@ -37,8 +37,15 @@ class CollectorTask(app.Task):
             update = telebot_lib.types.Update.de_json(json_string)
             logger.info(u'data=%s' % json_string.decode('unicode-escape'))
 
+            if update.callback_query:
+                chat_id = update.callback_query.message.chat.id
+            elif update.message:
+                chat_id = update.message.chat.id
+            else:
+                raise Exception('chat_id is not found')
+
             if Bot.objects.filter(telegram_token=token).exists():
-                shop_telebot = initialize_bot_with_routing2(token)
+                shop_telebot = initialize_bot_with_routing2(token, chat_id)
                 shop_telebot.process_new_updates([update])
             else:
                 logger.error('Token "%s" is not found' % token)

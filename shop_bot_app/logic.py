@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import re
 
 from django.conf import settings
 from django.core.cache import cache
@@ -7,7 +8,7 @@ from django.core.files.images import ImageFile
 from django.core.mail import send_mail
 from telebot import types
 
-from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile
+from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile, CacheAsSession
 from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
 from shop_bot_app.utils import create_shop_telebot
 
@@ -36,7 +37,7 @@ class BotView(object):
     token = None
     bot_id = None
 
-    def __init__(self, token):
+    def __init__(self, token, chat_id):
         self.token = token
         menu_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         menu_markup.row(u'Каталог', u'Распродажа %')
@@ -45,6 +46,8 @@ class BotView(object):
 
         shop_telebot = create_shop_telebot(token)
         self.shop_telebot = shop_telebot
+        self.chat_id = chat_id
+        self.pseudo_session = CacheAsSession(chat_id)
 
         self.bot_id = Bot.objects.get(telegram_token=token).id
 
@@ -66,13 +69,9 @@ class BotView(object):
             bot = Bot.objects.filter(telegram_token=self.token).get()
             BotBuyerMap.objects.create(bot=bot, buyer=buyer)
 
-        text_out = 'Привет! Я бот магазина одежды "АртБелкаДемоБот". Я могу принимать твои заказы и сообщать о скидках и акциях!'
+        text_out = u'Привет! Я бот магазина одежды "АртБелкаДемоБот". Я могу принимать твои заказы и сообщать о скидках и акциях!'
         self.shop_telebot.send_message(message.chat.id, text_out)
 
-        # markup = types.ReplyKeyboardMarkup()
-        # markup.row('Каталог', 'Распродажа %')
-        # markup.row('Заказы', 'Корзина')
-        # markup.row('Настройки', 'Помощь')
         self.shop_telebot.send_message(message.chat.id, "Сделайте ваш выбор:", reply_markup=self.menu_markup)
 
 
@@ -101,18 +100,21 @@ class BotView(object):
         else:
             self.shop_telebot.send_message(message.chat.id, 'Каталогов нет :(', reply_markup=markup)
 
-
-    def handle_show_catalog_products(self, call):
+    def handle_show_catalog_products(self, call, indirect_call=None):
         limit = 5
-        query_dict = get_query_dict(call.data)
+
+        call_data = indirect_call if indirect_call else call.data
+        query_dict = get_query_dict(call_data)
         catalog_id_str = query_dict.get('catalog_id')
         catalog_id = int(catalog_id_str) if catalog_id_str else None
         offset = int(query_dict.get('offset', 0))
 
         if not catalog_id:
-            logger.error(u'Каталог не найден (%s)' % call.data)
-            self.shop_telebot.send_message(call.message.chat.id, u'Неккорректная ссылка каталога, выберете другой каталог')
+            logger.error(u'Каталог не найден (%s)' % call_data)
+            self.shop_telebot.send_message(self.chat_id, u'Неккорректная ссылка каталога, выберете другой каталог')
             return
+
+        self.pseudo_session.set(CacheKey.LAST_CATALOG_URI, call_data)
 
         queryset = Product.objects.filter(bot_id=self.bot_id, catalog_id=catalog_id).order_by('-id')
         product_count = queryset.count()
@@ -127,7 +129,7 @@ class BotView(object):
             markup = types.InlineKeyboardMarkup()
             callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
             markup.add(callback_button)
-            self.shop_telebot.send_photo(call.message.chat.id, image_file, caption=caption, reply_markup=markup)
+            self.shop_telebot.send_photo(self.chat_id, image_file, caption=caption, reply_markup=markup)
         if product_count > offset + limit:
             new_offset = offset + limit
             more_command = create_uri(TextCommandEnum.GET_CATALOG, catalog_id=catalog_id, offset=new_offset)
@@ -135,9 +137,9 @@ class BotView(object):
             rest_amount = product_count - new_offset
             callback_button = types.InlineKeyboardButton(text=u"Показать еще 5 ( %s не показано)" % rest_amount, callback_data=more_command)
             markup.add(callback_button)
-            self.shop_telebot.send_message(call.message.chat.id, u'Показать другие товары?', reply_markup=markup)
+            self.shop_telebot.send_message(self.chat_id, u'Показать другие товары?', reply_markup=markup)
         if not products:
-            self.shop_telebot.send_message(call.message.chat.id, u'Каталог пуст')
+            self.shop_telebot.send_message(self.chat_id, u'Каталог пуст')
 
 
     def core_handle_more_catalog_discount_products(self, message, data=None):
@@ -173,44 +175,67 @@ class BotView(object):
 
     def handle_more_catalog_discount_products(self, call):
         return self.core_handle_more_catalog_discount_products(call.message, call.data)
-
-    def handle_contact(self, message):
-        phone_number = message.contact.phone_number
-        buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()
-        buyer.phone = phone_number
-        buyer.save()
-
-        order_id = cache.get('order', version=message.chat.id)
-        order = Order.objects.get(id=order_id)
-
-        # дублирование отображения сделанного заказа
-        image_file = order.product.get_400x400_picture_file()
-        caption = u'Вы заказали:\n%s\n%s' % (order.product.name, order.product.description)
-        self.shop_telebot.send_photo(message.chat.id, image_file, caption=caption, reply_markup=self.menu_markup)
-
-        text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
-        self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
-
-        send_mail_to_the_shop(order)
+    #
+    # def handle_contact(self, message):
+    #     phone_number = message.contact.phone_number
+    #     buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()
+    #     buyer.phone = phone_number
+    #     buyer.save()
+    #
+    #     order_id = cache.get('order', version=message.chat.id)
+    #     order = Order.objects.get(id=order_id)
+    #
+    #     text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
+    #     self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
+    #
+    #     send_mail_to_the_shop(order)
 
     def callback_catalog_order(self, call):
         logger.debug('Оформление заказа')
         buyer = Buyer.objects.filter(telegram_user_id=call.message.chat.id).get()
         product_id = int(call.data.lower().replace(u'/get_it_', ''))
         product = Product.objects.filter(id=product_id).get()
-        order = Order.objects.create(buyer=buyer, product=product)
-        info_text = u'Заказ id=%s создан' % order.id
-        logger.info(info_text)
-        cache.set('order', order.id, version=call.message.chat.id)
 
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        phone_btn = types.KeyboardButton(u'отправить номер телефона', request_contact=True)
-        back_btn = types.KeyboardButton(u'Назад')
-        markup.add(phone_btn)
-        markup.add(back_btn)
-        cache.set(CacheKey.NEED_PHONE, True, version=call.message.chat.id)
-        text_out = u'*Заказ оформлен* (%s).\n\n Укажите ваш номер телефона и менеджер вам перезвонит' % product.name
-        self.shop_telebot.send_message(call.message.chat.id, text_out, reply_markup=markup, parse_mode='markdown')
+        # дублирование отображения выбранного товара
+        text_out = 'Вы хотите заказать:'
+        self.shop_telebot.send_message(self.chat_id, text_out, reply_markup=self.menu_markup)
+        image_file = product.get_400x400_picture_file()
+        caption = u'%s\n%s' % (product.name, product.description)
+        markup = types.InlineKeyboardMarkup()
+        cancel_callback_button = types.InlineKeyboardButton(text=u"Отменить заказ", callback_data=TextCommandEnum.BACK_TO_PREVIOUS_CATALOG)
+        confirm_order_command = create_uri(TextCommandEnum.GET_PRODUCT_CONFIRM, product_id=product_id)
+        confirm_callback_button = types.InlineKeyboardButton(text=u"Подтвердить заказ", callback_data=confirm_order_command)
+        markup.add(cancel_callback_button)
+        markup.add(confirm_callback_button)
+        self.shop_telebot.send_photo(call.message.chat.id, image_file, caption=caption, reply_markup=markup)
+
+        # markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        # phone_btn = types.KeyboardButton(u'отправить номер телефона', request_contact=True)
+        # back_btn = types.KeyboardButton(u'Назад')
+        # markup.add(phone_btn)
+        # markup.add(back_btn)
+        # cache.set(CacheKey.NEED_PHONE, True, version=call.message.chat.id)
+        # text_out = u'*Заказ оформлен* (%s).\n\n Укажите ваш номер телефона и менеджер вам перезвонит' % product.name
+        # self.shop_telebot.send_message(call.message.chat.id, text_out, reply_markup=markup, parse_mode='markdown')
+
+    def handle_need_to_enter_phone(self, call):
+        query_dict = get_query_dict(call.data)
+        product_id = query_dict.get('product_id')
+        if product_id:
+            self.pseudo_session.set(CacheKey.PRODUCT_ID, product_id)
+            text_out = u'Введите ваш номер телефона в формате "код_оператора телефон". Пример: 29 1234567'
+            self.shop_telebot.send_message(self.chat_id, text_out)
+            self.pseudo_session.set(CacheKey.NEED_PHONE, True)
+        else:
+            text_out = u'Похоже либо вы выбрали товар, либо у нас произошел сбой. Попробуйте повторить'
+            self.shop_telebot.send_message(self.chat_id, text_out)
+
+
+    def handle_back_to_previous_catalog(self, call):
+        text_out = u'Возврат к товарам'
+        self.shop_telebot.send_message(call.message.chat.id, text_out, reply_markup=self.menu_markup)
+        last_catalog_uri = self.pseudo_session.get(CacheKey.LAST_CATALOG_URI)
+        self.handle_show_catalog_products(None, indirect_call=last_catalog_uri)
 
     def handle_send_message_to_administator_preview_back(self, message):
         text_out = u'Возврат в начало'
@@ -222,8 +247,26 @@ class BotView(object):
         self.shop_telebot.send_message(message.chat.id, text_out)
 
     def handle_need_phone(self, message):
-        text_out = u"Так не пойдет, нажми кнопку 'отправить номер телефона'. Если не получится, нужно обновить Telegramку %s" % Smile.SMILING_FACE_WITH_SMILING_EYE
-        self.shop_telebot.send_message(message.chat.id, text_out)
+        matched_result = re.search(u'[^\+\s\(\)\d]+', message.text)
+        if matched_result:
+            self.pseudo_session.set(CacheKey.NEED_PHONE, True)
+            text_out = u'Так не пойдет, нужно ввести ваш номер телефона в формате "код_оператора телефон". Пример: 29 1234567 %s' % Smile.SMILING_FACE_WITH_SMILING_EYE
+            self.shop_telebot.send_message(message.chat.id, text_out)
+        else:
+            phone_number = message.text
+            product_id = self.pseudo_session.get(CacheKey.PRODUCT_ID)
+            product = Product.objects.get(id=product_id)
+            buyer = Buyer.objects.filter(telegram_user_id=self.chat_id).get()
+            buyer.phone = phone_number
+            buyer.save()
+            order = Order.objects.create(buyer=buyer, product=product)
+            info_text = u'Заказ id=%s создан' % order.id
+            logger.info(info_text)
+            text_out = u'Спасибо, ваши контакты (%s) были отправлены менеджеру компании. Ожидайте он свяжется с вами' % phone_number
+            self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
+
+            send_mail_to_the_shop(order)
+
 
     def handle_send_message_to_administator(self, message):
         buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()

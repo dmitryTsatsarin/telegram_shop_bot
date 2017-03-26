@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 from urlparse import urlparse
-from django.http import QueryDict
-from django.utils.http import urlencode
+
+from django.core.cache import cache
+from django.core.files.images import ImageFile
 from django.core.mail import send_mail
+from django.http import QueryDict
 from django.template import loader
+from django.utils.http import urlencode
 from telebot import types
 
 from shop_bot_app.models import Bot
-from django.core.files.images import ImageFile
 
 __author__ = 'forward'
 
@@ -15,6 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from  shop_bot_app.utils import create_shop_telebot
+
 from django.conf import settings
 
 
@@ -91,14 +94,19 @@ def send_mail_to_the_shop(order):
 class TextCommandEnum(object):
     GET_CATALOG = u'/get_catalog'
     GET_PRODUCT = u'/get_it_'
+    GET_PRODUCT_CONFIRM = u'/get_it2_'
     BACK = u'назад'
     FAQ = u'faq'
     SALE = u'распродажа'
+    BACK_TO_PREVIOUS_CATALOG = u'back_to_previous_catalog'
 
 
 class CacheKey(object):
     QUESTION_TO_ADMIN = 'question_to_admin'
     NEED_PHONE = 'need_phone'
+    LAST_CATALOG_URI = 'last_catalog_uri'
+    ORDER_ID = 'order_id'
+    PRODUCT_ID = 'product_id'
 
 
 class Smile(object):
@@ -136,4 +144,19 @@ def get_query_dict(uri):
 
 def create_uri(url, **params):
     return "%s?%s" % (url, urlencode(params))
+
+
+class CacheAsSession(object):
+    chat_id = None
+
+    def __init__(self, chat_id):
+        self.chat_id = chat_id
+
+    def set(self, *arg, **kwargs):
+        kwargs['version'] = self.chat_id
+        return cache.set(*arg, **kwargs)
+
+    def get(self, *arg, **kwargs):
+        kwargs['version'] = self.chat_id
+        return cache.get(*arg, **kwargs)
 
