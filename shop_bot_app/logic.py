@@ -58,8 +58,8 @@ class BotView(object):
         try:
             BotBuyerMap.objects.filter(buyer__telegram_user_id=telegram_user_id, bot__telegram_token=self.token).get()
         except BotBuyerMap.DoesNotExist as e:
-            first_name = message.chat.first_name
-            last_name = message.chat.last_name
+            first_name = message.chat.first_name or ''
+            last_name = message.chat.last_name or ''
             buyer, _ = Buyer.objects.get_or_create(telegram_user_id=telegram_user_id, defaults=dict(
                         first_name=first_name,
                         last_name=last_name,
