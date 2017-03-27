@@ -92,8 +92,17 @@ class BotAdministratorProfileAdmin(admin.ModelAdmin):
     pass
 
 
+class BotAdminForm(forms.ModelForm):
+    hello_description = forms.CharField(widget=forms.Textarea, help_text='Начальное описание после /start')
+
+    class Meta:
+        model = Bot
+        fields = ['name', 'telegram_token', 'order_email', 'hello_description']
+
+
 class BotAdmin(admin.ModelAdmin):
-    #readonly_fields = ['administrator']
+    form = BotAdminForm
+    readonly_fields = ['administrator']
 
     def get_queryset(self, request):
         qs = super(BotAdmin, self).get_queryset(request)

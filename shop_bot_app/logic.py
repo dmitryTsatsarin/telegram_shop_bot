@@ -55,8 +55,9 @@ class BotView(object):
     def handle_start_help(self, message):
         telegram_user_id = message.chat.id
         # create buyer
+        bot = Bot.objects.filter(telegram_token=self.token).get()
         try:
-            BotBuyerMap.objects.filter(buyer__telegram_user_id=telegram_user_id, bot__telegram_token=self.token).get()
+            BotBuyerMap.objects.filter(buyer__telegram_user_id=telegram_user_id, bot=bot).get()
         except BotBuyerMap.DoesNotExist as e:
             first_name = message.chat.first_name or ''
             last_name = message.chat.last_name or ''
@@ -66,11 +67,10 @@ class BotView(object):
                         telegram_user_id=telegram_user_id
                 )
             )
-            bot = Bot.objects.filter(telegram_token=self.token).get()
             BotBuyerMap.objects.create(bot=bot, buyer=buyer)
 
-        text_out = u'Привет! Я бот магазина одежды "АртБелкаДемоБот". Я могу принимать твои заказы и сообщать о скидках и акциях!'
-        self.shop_telebot.send_message(message.chat.id, text_out)
+        text_out = bot.hello_description
+        self.shop_telebot.send_message(message.chat.id, text_out, parse_mode='markdown')
 
         self.shop_telebot.send_message(message.chat.id, "Сделайте ваш выбор:", reply_markup=self.menu_markup)
 
