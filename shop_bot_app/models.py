@@ -26,6 +26,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     catalog = models.ForeignKey('Catalog', null=True)
     is_discount = models.BooleanField(default=False)
+    is_visible = models.BooleanField(default=True, help_text='Показывать товар покупателю или нет')
 
     def __unicode__(self):
         return self.name

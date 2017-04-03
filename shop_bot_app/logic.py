@@ -92,7 +92,7 @@ class BotView(object):
         if catalogs:
             for catalog in catalogs:
                 order_command = u'/get_catalog?catalog_id=%s' % catalog.id
-                products_count = Product.objects.filter(catalog_id=catalog.id, bot_id=self.bot_id).count()
+                products_count = Product.objects.filter(catalog_id=catalog.id, bot_id=self.bot_id, is_visible=True).count()
                 text = u'%s (%s)' % (catalog.name, products_count)
                 callback_button = types.InlineKeyboardButton(text=text, callback_data=order_command)
                 markup.add(callback_button)
@@ -116,7 +116,7 @@ class BotView(object):
 
         self.pseudo_session.set(CacheKey.LAST_CATALOG_URI, call_data)
 
-        queryset = Product.objects.filter(bot_id=self.bot_id, catalog_id=catalog_id).order_by('-id')
+        queryset = Product.objects.filter(bot_id=self.bot_id, catalog_id=catalog_id, is_visible=True).order_by('-id')
         product_count = queryset.count()
 
         products = list(queryset[offset:offset+limit])
@@ -151,7 +151,7 @@ class BotView(object):
         else:
             offset = 0
 
-        queryset = Product.objects.filter(bot_id=self.bot_id, is_discount=True).order_by('-id')
+        queryset = Product.objects.filter(bot_id=self.bot_id, is_discount=True, is_visible=True).order_by('-id')
         product_count = queryset.count()
 
         products = list(queryset[offset:offset + limit])
