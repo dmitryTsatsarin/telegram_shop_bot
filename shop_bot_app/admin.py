@@ -45,6 +45,8 @@ class CustomModelAdmin(admin.ModelAdmin, GetBotMixin):
 
 class ProductAdmin(CustomModelAdmin):
     list_display = ['name', 'id', 'is_visible', 'description']
+    fields = ('name', 'description', 'picture', 'catalog', 'is_discount', 'is_visible')
+
 
     formfield_overrides = {
         ThumbnailerField: {'widget': ImageClearableFileInput },
