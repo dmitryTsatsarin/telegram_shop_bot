@@ -125,7 +125,7 @@ def get_request_data(request):
 def generate_and_send_discount_product(product, shop_telebot, message):
     image_file = ImageFile(product.picture)
     order_command = u'/get_it_%s' % product.id
-    caption = u'%s\n%s\n%s\nТОРОПИТЕСЬ ТОВАР НА СКИДКЕ' % (product.name, product.description, product.price)
+    caption = u'%s\n%s\nТОРОПИТЕСЬ ТОВАР НА СКИДКЕ' % (product.name, product.description)
 
     markup = types.InlineKeyboardMarkup()
     callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
