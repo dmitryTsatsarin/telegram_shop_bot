@@ -29,7 +29,6 @@
 1) обновить исходники
 2) установить пакеты через pip
 3) сделать бекап БД              # pg_dump -h localhost -O shop_bot_prod -f /home/webrunner/backups/$(date +"%Y-%m-%d_%H-%M")
-
 4) выполнить миграции
 5) обновить конфиг supervisor                          # sudo supervisorctl reread && sudo supervisorctl update
 6) перезагрузить web-сервер через supervisor           # sudo supervisorctl restart shop_bot:
