@@ -5,6 +5,7 @@ import sys
 import traceback
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
+from django.shortcuts import render
 
 from shop_bot_app.helpers import get_request_data
 from shop_bot_app.tasks import CollectorTask
@@ -29,3 +30,6 @@ def webhooks(request, token):
         traceback.print_exc(tb, file=sys.stdout)
         raise
 
+
+def main_page(request):
+    return render(request, 'main.html', {})
