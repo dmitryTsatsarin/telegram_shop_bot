@@ -16,19 +16,26 @@ logger = logging.getLogger(__name__)
 to_log = logger.info
 
 
-def send_schedule_product(telegram_user_id, product_id, text_before):
-    product = Product.objects.filter(id=product_id).get()
+def send_schedule_product(telegram_user_id, postponed_post):
+    product_id = postponed_post.product_id
+    post_description = postponed_post.description
 
-    image_file = product.get_400x400_picture_file()
+    shop_telebot = create_shop_telebot(postponed_post.bot.telegram_token)
+    if product_id:
+        product = Product.objects.filter(id=product_id).get()
 
-    order_command = u'/get_it_%s' % product.id
-    caption = u'%s\nНаименование: %s\nОписание: %s\nЦена: %s' % (text_before, product.name, product.description, product.price)
+        image_file = product.get_400x400_picture_file()
 
-    markup = types.InlineKeyboardMarkup()
-    callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
-    markup.add(callback_button)
-    shop_telebot = create_shop_telebot(product.bot.telegram_token)
-    shop_telebot.send_photo(telegram_user_id, image_file, caption=caption, reply_markup=markup)
+        order_command = u'/get_it_%s' % product.id
+        caption = u'%s\nНаименование: %s\nОписание: %s\nЦена: %s' % (post_description, product.name, product.description, product.price)
+
+        markup = types.InlineKeyboardMarkup()
+        callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
+        markup.add(callback_button)
+
+        shop_telebot.send_photo(telegram_user_id, image_file, caption=caption, reply_markup=markup, disable_notification=True)
+    else:
+        shop_telebot.send_message(telegram_user_id, text=post_description, disable_notification=True)
 
 
 class BotView(object):
