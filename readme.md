@@ -27,8 +27,9 @@
 
 **Регламент обновления (полуавтоматическое)**
 1) запустить fabric
-   
-    fab -H do_webrunner deploy:tag_name="release_4.7_2017-04-06"
+```
+fab -H do_webrunner deploy:tag_name="release_4.7_2017-04-06"
+```
    
 где "release_4.7_2017-04-06" - название тега, который надо развернуть
 
