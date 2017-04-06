@@ -25,7 +25,17 @@
 7) стартануть web-сервер через supervisor
 
 
-**Регламент обновления**
+**Регламент обновления (полуавтоматическое)**
+1) запустить fabric
+   
+    fab -H do_webrunner deploy:tag_name="release_4.7_2017-04-06"
+   
+где "release_4.7_2017-04-06" - название тега, который надо развернуть
+
+2) ввести sudo пароль
+
+
+**Регламент обновления (ручное)**
 1) обновить исходники
 2) установить пакеты через pip   # pip install -r ./requirements.txt
 3) сделать бекап БД              # pg_dump -h localhost -O shop_bot_prod -f /home/webrunner/backups/$(date +"%Y-%m-%d_%H-%M")
