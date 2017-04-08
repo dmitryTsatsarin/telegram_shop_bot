@@ -118,7 +118,7 @@ class Bot(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
     telegram_token = models.CharField(max_length=255, null=True, blank=True)
     order_email = models.EmailField(null=True, help_text='Сюда будет отправляться информация о заказе')
-    bot_support = models.ForeignKey(Buyer, null=True, help_text='Человек, которому будут перенаправляться все вопросы из бота')
+    bot_support = models.ForeignKey(Buyer, null=True, blank=True, help_text='Человек, которому будут перенаправляться все вопросы из бота')
     hello_description = models.CharField(max_length=1000, default='', help_text='Начальное описание после /start')
     #is_bot_for_testing = models.BooleanField(default=True)
     #telegram_token_test = models.CharField(max_length=255, null=True, blank=True, help_text=u'Токен телеграмма для тестрования')

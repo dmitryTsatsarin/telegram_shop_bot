@@ -66,7 +66,7 @@ def get_webhook_url(token):
 def send_mail_to_the_shop(order):
 
     shop_administrator_email = order.product.bot.order_email
-    artbelka_administrator_email = settings.EMAIL_BOT_ADMIN
+    artbelka_administrator_email = settings.EMAIL_SHOP_BOT_ADMIN
 
     thumb_url = order.product.picture['400x400'].url
 
@@ -125,7 +125,6 @@ class KeyValue(object):
 
 # TODO: объединить эти 2 класса ####################################
 class CacheKey(object):
-    QUESTION_TO_ADMIN = 'question_to_admin'
     QUESTION_ABOUT_PRODUCT_ID = 'question_about_product_id'
     NEED_PHONE = 'need_phone'
     LAST_CATALOG_URI = 'last_catalog_uri'
@@ -134,7 +133,7 @@ class CacheKey(object):
 
 
 class CacheKeyValue(object):
-    QUESTION_ABOUT_PRODUCT_MODE = KeyValue('question_about_product_mode', {
+    QUESTION_MODE = KeyValue('question_mode', {
         'product_id': None,
         'is_buyer_notified': False
     })

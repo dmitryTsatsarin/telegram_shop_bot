@@ -144,8 +144,8 @@ class BotView(object):
             callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
             product_question_command = create_uri(TextCommandEnum.QUESTION_ABOUT_PRODUCT, product_id=product.id)
             product_question_button = types.InlineKeyboardButton(text=u"Задать вопрос по товару", callback_data=product_question_command)
-            markup.add(callback_button)
             markup.add(product_question_button)
+            markup.add(callback_button)
             self.shop_telebot.send_photo(self.chat_id, image_file, caption=caption, reply_markup=markup)
         if product_count > offset + limit:
             new_offset = offset + limit
@@ -259,8 +259,8 @@ class BotView(object):
 
     def handle_send_message_to_administator_preview(self, message):
         text_out = u'Задайте вопрос администратору:'
-        cache.set(CacheKey.QUESTION_TO_ADMIN, True, version=message.chat.id)
-        self.shop_telebot.send_message(message.chat.id, text_out)
+        self._start_question_dialog(message)
+        self.shop_telebot.send_message(self.chat_id, text_out, reply_markup=self.close_product_dialog_markup)
 
     def handle_need_phone(self, message):
         matched_result = re.search(u'[^\+\s\(\)\d]+', message.text)
@@ -284,15 +284,8 @@ class BotView(object):
             send_mail_to_the_shop(order)
 
     def handle_send_message_to_administator(self, message):
-        buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()
-        Feedback.objects.create(bot_id=self.bot_id, description=message.text, buyer=buyer)
-        user_contacts = u'%s %s, %s' % (buyer.first_name, buyer.last_name, buyer.phone)
-        mail_text = u'Сообщение: %s\n От кого: %s' % (message.text, user_contacts)
+        self._core_question_to_bot_support(message)
 
-        # todo: вынести отправку письма в celery, добавить кнопку с телефоном, если он не заполнен
-        send_mail(u'От бота артбелки', mail_text, settings.EMAIL_FULL_ADDRESS, [settings.EMAIL_BOT_ADMIN])
-        text_out = u'Ваше сообщение оправлено администратору. Ответ в течение 1-48 часов'
-        self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
 
     def handle_default(self, message):
         # дефолтный хэдлер, если не нашло подходящий
@@ -302,36 +295,10 @@ class BotView(object):
             logger.warning(u'Запрос не обработался: %s' % message)
 
     def handle_question_about_product_admin_say(self, message):
+        self._core_answer_from_bot_support(message)
 
-        buyer_chat_id = re.search(TsdRegExp.FIND_USER_IN_REPLY, message.reply_to_message.text).group(1)
-
-        # введем пользователя в режим диалога с администратором если этот режим был закрыт
-        key_value = CacheKeyValue().QUESTION_ABOUT_PRODUCT_MODE
-        if not self.pseudo_session.get(key_value.get_cache_key(), chat_id=buyer_chat_id):
-            key_value.data.update(is_buyer_notified=True)
-            self.pseudo_session.set(key_value.get_cache_key(), key_value.data, chat_id=buyer_chat_id)
-
-        text_out = u'*Administrator*: %s' % message.text
-        self.shop_telebot.send_message(buyer_chat_id, text=text_out, reply_markup=self.close_product_dialog_markup, parse_mode='markdown')
-
-    def handle_question_about_product(self, message):
-
-        if not self.bot_support_chat_id:
-            self.shop_telebot.send_message(self.chat_id, text=u'К сожалению к данному боту не подключен оператор поддержки клиентов ((')
-            logger.warning(u'Не установлен оператор поддержки для бота id=%s' % self.bot_id)
-            return
-
-        markup = types.ForceReply()
-        text_out = u'Пользователь: %s %s (id=%s) Спрашивает:\n%s' % (message.chat.first_name, message.chat.last_name, message.chat.id, message.text)
-        self.shop_telebot.send_message(self.bot_support_chat_id, text=text_out, reply_markup=markup)
-
-        key_value = CacheKeyValue().QUESTION_ABOUT_PRODUCT_MODE
-        key_value_cached = self.pseudo_session.get(key_value.get_cache_key())
-        logger.info(self.chat_id)
-        if not key_value_cached['is_buyer_notified']:
-            self.shop_telebot.send_message(self.chat_id, text=u'*Bot*: Я передал сообщение администратору. Я передам все что напишите до нажатия на "Закончить разговор" ', parse_mode='markdown')
-            key_value.data['is_buyer_notified'] = True
-            self.pseudo_session.set(key_value.get_cache_key(), key_value.data)
+    def handle_question_to_bot_support(self, message):
+        self._core_question_to_bot_support(message)
 
     def handle_start_question_about_product(self, call):
         call_data = call.data
@@ -339,13 +306,66 @@ class BotView(object):
         product_id = int(query_dict.get('product_id'))
         text_out = u'Товар N. Задайте вопрос по товару N'
 
-        key_value = CacheKeyValue().QUESTION_ABOUT_PRODUCT_MODE
-        key_value.data.update(product_id=product_id)
-        self.pseudo_session.set(key_value.get_cache_key(), key_value.data)
+        self._start_question_dialog(product_id)
 
         self.shop_telebot.send_message(self.chat_id, text_out, reply_markup=self.close_product_dialog_markup)
 
     def handle_close_question_dialog(self, message):
-        self.pseudo_session.delete(CacheKeyValue().QUESTION_ABOUT_PRODUCT_MODE.get_cache_key())
+        self._close_question_dialog()
+
+    def _start_question_dialog(self, product_id=None):
+        key_value = CacheKeyValue().QUESTION_MODE
+        if product_id:
+            key_value.data.update(product_id=product_id)
+        self.pseudo_session.set(key_value.get_cache_key(), key_value.data)
+
+    def _close_question_dialog(self):
+        self.pseudo_session.delete(CacheKeyValue().QUESTION_MODE.get_cache_key())
         text_out = u'Разговор закончен. Спасибо.'
         self.shop_telebot.send_message(self.chat_id, text_out, reply_markup=self.menu_markup)
+
+    def _core_question_to_bot_support(self, message):
+        if not self.bot_support_chat_id:
+            text_out = u'К сожалению к данному боту не подключен оператор поддержки клиентов ((.\n' \
+                   u'Поэтому ваше сообщение оправлено администратору по email. Ответ в течение 1-48 часов'
+
+            buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()
+            Feedback.objects.create(bot_id=self.bot_id, description=message.text, buyer=buyer)
+            user_contacts = u'%s %s, %s' % (buyer.first_name, buyer.last_name, buyer.phone)
+            mail_text = u'Сообщение: %s\n От кого: %s' % (message.text, user_contacts)
+
+            # todo: вынести отправку письма в celery, добавить кнопку с телефоном, если он не заполнен
+            result = send_mail(u'От бота артбелки', mail_text, settings.EMAIL_FULL_ADDRESS, [settings.EMAIL_SHOP_BOT_ADMIN])
+
+            self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
+            logger.warning(u'Не установлен оператор поддержки для бота id=%s' % self.bot_id)
+            return
+
+        markup = types.ForceReply()
+        text_out = u'Пользователь: %s %s (id=%s) Спрашивает:\n%s' % (message.chat.first_name, message.chat.last_name, message.chat.id, message.text)
+        self.shop_telebot.send_message(self.bot_support_chat_id, text=text_out, reply_markup=markup)
+
+        key_value = CacheKeyValue().QUESTION_MODE
+        key_value_cached = self.pseudo_session.get(key_value.get_cache_key(), {})
+        logger.info(self.chat_id)
+        if not key_value_cached.get('is_buyer_notified'):
+            self.shop_telebot.send_message(self.chat_id, text=u'*Bot*: Я передал сообщение администратору. Я передам все что напишите до нажатия на "Закончить разговор" ', parse_mode='markdown')
+            key_value.data['is_buyer_notified'] = True
+            self.pseudo_session.set(key_value.get_cache_key(), key_value.data)
+
+    def _core_answer_from_bot_support(self, message):
+        buyer_chat_id = re.search(TsdRegExp.FIND_USER_IN_REPLY, message.reply_to_message.text).group(1)
+
+        # введем пользователя в режим диалога с администратором если этот режим был закрыт
+        key_value = CacheKeyValue().QUESTION_MODE
+        if not self.pseudo_session.get(key_value.get_cache_key(), chat_id=buyer_chat_id):
+            key_value.data.update(is_buyer_notified=True)
+            self.pseudo_session.set(key_value.get_cache_key(), key_value.data, chat_id=buyer_chat_id)
+
+        text_out = u'*Администратор*: %s' % message.text
+        self.shop_telebot.send_message(buyer_chat_id, text=text_out, reply_markup=self.close_product_dialog_markup, parse_mode='markdown')
+
+    def _core_get_product_description(self):
+        pass
+
+
