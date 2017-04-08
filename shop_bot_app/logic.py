@@ -4,11 +4,11 @@ import re
 
 from django.conf import settings
 from django.core.cache import cache
-from django.core.files.images import ImageFile
 from django.core.mail import send_mail
 from telebot import types
 
-from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile, CacheAsSession
+from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile, CacheAsSession, Timeout, CacheKeyValue, \
+    TsdRegExp
 from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
 from shop_bot_app.utils import create_shop_telebot
 
@@ -51,6 +51,10 @@ class BotView(object):
         menu_markup.row(u'FAQ (Помощь)', u'Задать вопрос')
         self.menu_markup = menu_markup
 
+        close_product_dialog_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        close_product_dialog_markup.row(u'Закончить разговор')
+        self.close_product_dialog_markup = close_product_dialog_markup
+
         shop_telebot = create_shop_telebot(token)
         self.shop_telebot = shop_telebot
         self.chat_id = chat_id
@@ -80,7 +84,6 @@ class BotView(object):
         self.shop_telebot.send_message(message.chat.id, text_out, parse_mode='markdown')
 
         self.shop_telebot.send_message(message.chat.id, "Сделайте ваш выбор:", reply_markup=self.menu_markup)
-
 
     def handle_faq(self, message):
         faqs = list(FAQ.objects.filter(bot_id=self.bot_id))
@@ -126,7 +129,7 @@ class BotView(object):
         queryset = Product.objects.filter(bot_id=self.bot_id, catalog_id=catalog_id, is_visible=True).order_by('-id')
         product_count = queryset.count()
 
-        products = list(queryset[offset:offset+limit])
+        products = list(queryset[offset:offset + limit])
         # todo: возможно стоит вынести общую часть в отдельные функции
         for product in products:
             image_file = product.get_400x400_picture_file()
@@ -135,7 +138,10 @@ class BotView(object):
 
             markup = types.InlineKeyboardMarkup()
             callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
+            product_question_command = create_uri(TextCommandEnum.QUESTION_ABOUT_PRODUCT, product_id=product.id)
+            product_question_button = types.InlineKeyboardButton(text=u"Задать вопрос по товару", callback_data=product_question_command)
             markup.add(callback_button)
+            markup.add(product_question_button)
             self.shop_telebot.send_photo(self.chat_id, image_file, caption=caption, reply_markup=markup)
         if product_count > offset + limit:
             new_offset = offset + limit
@@ -147,7 +153,6 @@ class BotView(object):
             self.shop_telebot.send_message(self.chat_id, u'Показать другие товары?', reply_markup=markup)
         if not products:
             self.shop_telebot.send_message(self.chat_id, u'Каталог пуст')
-
 
     def core_handle_more_catalog_discount_products(self, message, data=None):
         limit = 5
@@ -182,6 +187,7 @@ class BotView(object):
 
     def handle_more_catalog_discount_products(self, call):
         return self.core_handle_more_catalog_discount_products(call.message, call.data)
+
     #
     # def handle_contact(self, message):
     #     phone_number = message.contact.phone_number
@@ -237,7 +243,6 @@ class BotView(object):
             text_out = u'Похоже либо вы выбрали товар, либо у нас произошел сбой. Попробуйте повторить'
             self.shop_telebot.send_message(self.chat_id, text_out)
 
-
     def handle_back_to_previous_catalog(self, call):
         text_out = u'Возврат к товарам'
         self.shop_telebot.send_message(call.message.chat.id, text_out, reply_markup=self.menu_markup)
@@ -274,11 +279,10 @@ class BotView(object):
 
             send_mail_to_the_shop(order)
 
-
     def handle_send_message_to_administator(self, message):
         buyer = Buyer.objects.filter(telegram_user_id=message.chat.id).get()
         Feedback.objects.create(bot_id=self.bot_id, description=message.text, buyer=buyer)
-        user_contacts =u'%s %s, %s' % (buyer.first_name, buyer.last_name, buyer.phone)
+        user_contacts = u'%s %s, %s' % (buyer.first_name, buyer.last_name, buyer.phone)
         mail_text = u'Сообщение: %s\n От кого: %s' % (message.text, user_contacts)
 
         # todo: вынести отправку письма в celery, добавить кнопку с телефоном, если он не заполнен
@@ -293,7 +297,48 @@ class BotView(object):
         if not settings.DEBUG:
             logger.warning(u'Запрос не обработался: %s' % message)
 
+    def handle_question_about_product_admin_say(self, message):
 
+        buyer_chat_id = re.search(TsdRegExp.FIND_USER_IN_REPLY, message.reply_to_message.text).group(1)
 
+        # введем пользователя в режим диалога с администратором если этот режим был закрыт
+        key_value = CacheKeyValue().QUESTION_ABOUT_PRODUCT_MODE
+        if not self.pseudo_session.get(key_value.get_cache_key(), chat_id=buyer_chat_id):
+            key_value.data.update(is_buyer_notified=True)
+            self.pseudo_session.set(key_value.get_cache_key(), key_value.data, chat_id=buyer_chat_id)
 
+        text_out = u'*Administrator*: %s' % message.text
+        self.shop_telebot.send_message(buyer_chat_id, text=text_out, reply_markup=self.close_product_dialog_markup, parse_mode='markdown')
 
+    def handle_question_about_product(self, message):
+        # временно, заменть на id админа из базы
+        ADMIN_CHAT_ID = '53986880'
+
+        markup = types.ForceReply()
+        text_out = u'Пользователь: %s %s (id=%s) Спрашивает:\n%s' % (message.chat.first_name, message.chat.last_name, message.chat.id, message.text)
+        self.shop_telebot.send_message(ADMIN_CHAT_ID, text=text_out, reply_markup=markup)
+
+        key_value = CacheKeyValue().QUESTION_ABOUT_PRODUCT_MODE
+        key_value_cached = self.pseudo_session.get(key_value.get_cache_key())
+        logger.info(self.chat_id)
+        if not key_value_cached['is_buyer_notified']:
+            self.shop_telebot.send_message(self.chat_id, text=u'*Bot*: Я передал сообщение администратору. Я передам все что напишите до нажатия на "Закончить разговор" ', parse_mode='markdown')
+            key_value.data['is_buyer_notified'] = True
+            self.pseudo_session.set(key_value.get_cache_key(), key_value.data)
+
+    def handle_start_question_about_product(self, call):
+        call_data = call.data
+        query_dict = get_query_dict(call_data)
+        product_id = int(query_dict.get('product_id'))
+        text_out = u'Товар N. Задайте вопрос по товару N'
+
+        key_value = CacheKeyValue().QUESTION_ABOUT_PRODUCT_MODE
+        key_value.data.update(product_id=product_id)
+        self.pseudo_session.set(key_value.get_cache_key(), key_value.data)
+
+        self.shop_telebot.send_message(self.chat_id, text_out, reply_markup=self.close_product_dialog_markup)
+
+    def handle_close_question_dialog(self, message):
+        self.pseudo_session.delete(CacheKeyValue().QUESTION_ABOUT_PRODUCT_MODE.get_cache_key())
+        text_out = u'Разговор закончен. Спасибо.'
+        self.shop_telebot.send_message(self.chat_id, text_out, reply_markup=self.menu_markup)

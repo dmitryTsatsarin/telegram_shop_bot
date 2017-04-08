@@ -45,3 +45,11 @@ fab -H do_webrunner deploy:tag_name="release_4.7_2017-04-06"
 5) обновить конфиг supervisor                          # sudo supervisorctl reread && sudo supervisorctl update
 6) перезагрузить web-сервер через supervisor           # sudo supervisorctl restart shop_bot:
 
+
+
+**ключевые части кода для работы**
+
+more_command = create_uri(TextCommandEnum.GET_CATALOG, catalog_id=catalog_id, offset=new_offset)
+
+query_dict = get_query_dict(call_data)
+catalog_id_str = query_dict.get('catalog_id')

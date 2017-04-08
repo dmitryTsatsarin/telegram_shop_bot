@@ -99,14 +99,51 @@ class TextCommandEnum(object):
     FAQ = u'faq'
     SALE = u'распродажа'
     BACK_TO_PREVIOUS_CATALOG = u'back_to_previous_catalog'
+    QUESTION_TO_ADMIN = u'задать вопрос'
+    QUESTION_ABOUT_PRODUCT = u'/question_about_product'
+    CLOSE_QUESTION_ABOUT_PRODUCT_DIALOG = u'закончить разговор'
 
 
+class KeyValue(object):
+    def __init__(self, cache_key, data_dict):
+        self.cache_key = cache_key
+        self._data = data_dict
+
+    def __unicode__(self):
+        return self.cache_key
+
+    def __str__(self):
+        return self.cache_key
+
+    @property
+    def data(self):
+        return self._data
+
+    def get_cache_key(self):
+        return self.cache_key
+
+
+# TODO: объединить эти 2 класса ####################################
 class CacheKey(object):
     QUESTION_TO_ADMIN = 'question_to_admin'
+    QUESTION_ABOUT_PRODUCT_ID = 'question_about_product_id'
     NEED_PHONE = 'need_phone'
     LAST_CATALOG_URI = 'last_catalog_uri'
     ORDER_ID = 'order_id'
     PRODUCT_ID = 'product_id'
+
+
+class CacheKeyValue(object):
+    QUESTION_ABOUT_PRODUCT_MODE = KeyValue('question_about_product_mode', {
+        'product_id': None,
+        'is_buyer_notified': False
+    })
+
+# ####################################################################
+
+
+class TsdRegExp(object):
+    FIND_USER_IN_REPLY = '\(id=(\d+)\)'
 
 
 class Smile(object):
@@ -119,7 +156,6 @@ def get_request_data(request):
     request_data = request.body.decode('utf-8')
     request.request_data = request_data
     return request_data
-
 
 
 def generate_and_send_discount_product(product, shop_telebot, message):
@@ -153,10 +189,14 @@ class CacheAsSession(object):
         self.chat_id = chat_id
 
     def set(self, *arg, **kwargs):
-        kwargs['version'] = self.chat_id
+        kwargs['version'] = kwargs.pop('chat_id', None) or self.chat_id
         return cache.set(*arg, **kwargs)
 
     def get(self, *arg, **kwargs):
-        kwargs['version'] = self.chat_id
+        kwargs['version'] = kwargs.pop('chat_id', None) or self.chat_id
         return cache.get(*arg, **kwargs)
+
+    def delete(self, *arg, **kwargs):
+        kwargs['version'] = self.chat_id
+        return cache.delete(*arg, **kwargs)
 
