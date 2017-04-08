@@ -99,7 +99,7 @@ class BotAdminForm(forms.ModelForm):
 
     class Meta:
         model = Bot
-        fields = ['name', 'telegram_token', 'order_email', 'hello_description']
+        fields = ['name', 'telegram_token', 'order_email', 'hello_description', 'bot_support']
 
 
 class BotAdmin(admin.ModelAdmin):

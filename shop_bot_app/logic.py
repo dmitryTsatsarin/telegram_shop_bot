@@ -60,7 +60,11 @@ class BotView(object):
         self.chat_id = chat_id
         self.pseudo_session = CacheAsSession(chat_id)
 
-        self.bot_id = Bot.objects.get(telegram_token=token).id
+        bot = Bot.objects.get(telegram_token=token)
+        self.bot_id = bot.id
+        self.bot_support_chat_id = None
+        if bot.bot_support:
+            self.bot_support_chat_id = bot.bot_support.telegram_user_id
 
     # Обработчик команд '/start'
     def handle_start_help(self, message):
@@ -311,12 +315,15 @@ class BotView(object):
         self.shop_telebot.send_message(buyer_chat_id, text=text_out, reply_markup=self.close_product_dialog_markup, parse_mode='markdown')
 
     def handle_question_about_product(self, message):
-        # временно, заменть на id админа из базы
-        ADMIN_CHAT_ID = '53986880'
+
+        if not self.bot_support_chat_id:
+            self.shop_telebot.send_message(self.chat_id, text=u'К сожалению к данному боту не подключен оператор поддержки клиентов ((')
+            logger.warning(u'Не установлен оператор поддержки для бота id=%s' % self.bot_id)
+            return
 
         markup = types.ForceReply()
         text_out = u'Пользователь: %s %s (id=%s) Спрашивает:\n%s' % (message.chat.first_name, message.chat.last_name, message.chat.id, message.text)
-        self.shop_telebot.send_message(ADMIN_CHAT_ID, text=text_out, reply_markup=markup)
+        self.shop_telebot.send_message(self.bot_support_chat_id, text=text_out, reply_markup=markup)
 
         key_value = CacheKeyValue().QUESTION_ABOUT_PRODUCT_MODE
         key_value_cached = self.pseudo_session.get(key_value.get_cache_key())
