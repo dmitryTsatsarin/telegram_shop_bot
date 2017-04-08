@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from telebot import types
 
-from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile, CacheAsSession, Timeout, CacheKeyValue, \
+from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile, CacheAsSession, CacheKeyValue, \
     TsdRegExp
 from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
 from shop_bot_app.utils import create_shop_telebot
