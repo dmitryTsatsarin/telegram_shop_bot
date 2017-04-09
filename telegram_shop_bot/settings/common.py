@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'raven.contrib.django.raven_compat',
     'djcelery',
     'easy_thumbnails',
+    'anymail',
     'shop_bot_app'
 ]
 
@@ -154,13 +155,15 @@ LOGGING = {
 }
 
 
-EMAIL_HOST = 'smtp.yandex.ru'
-EMAIL_PORT = 465
-EMAIL_HOST_USER = 'artbelka.bot1'
-EMAIL_FULL_ADDRESS = 'artbelka.bot1@yandex.ru'
+ANYMAIL = {
+    "MAILGUN_API_KEY": "key-4c3111edfe4b0fd45e6a1d246479913b",
+    "MAILGUN_SENDER_DOMAIN": 'mail.artbelka.by',
+}
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"  # or sendgrid.EmailBackend, or...
 EMAIL_SHOP_BOT_ADMIN = 'dmitry.tsatsarin@gmail.com'
-EMAIL_HOST_PASSWORD = '1234512345'
-EMAIL_USE_SSL = True
+DEFAULT_FROM_EMAIL = EMAIL_SHOP_BOT_ADMIN
+EMAIL_FULL_ADDRESS = 'bots@mail.artbelka.by'
+
 
 CACHES = {
     'default': {

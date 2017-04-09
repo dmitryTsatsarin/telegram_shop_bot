@@ -339,6 +339,9 @@ class BotView(object):
 
             self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
             logger.warning(u'Не установлен оператор поддержки для бота id=%s' % self.bot_id)
+
+            self.pseudo_session.delete(CacheKeyValue().QUESTION_MODE.get_cache_key())
+
             return
 
         markup = types.ForceReply()
