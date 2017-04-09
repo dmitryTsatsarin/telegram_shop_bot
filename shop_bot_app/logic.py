@@ -9,7 +9,7 @@ from telebot import types
 
 from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile, CacheAsSession, CacheKeyValue, \
     TsdRegExp
-from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ
+from shop_bot_app.models import Product, Buyer, Order, Feedback, Bot, Catalog, BotBuyerMap, FAQ, MessageLog
 from shop_bot_app.utils import create_shop_telebot
 
 logger = logging.getLogger(__name__)
@@ -294,8 +294,9 @@ class BotView(object):
         # дефолтный хэдлер, если не нашло подходящий
         text_out = u'Команда "%s" не найдена, попробуйте выбрать другую команду' % message.text
         self.shop_telebot.send_message(message.chat.id, text_out, reply_markup=self.menu_markup)
-        if not settings.DEBUG:
-            logger.warning(u'Запрос не обработался: %s' % message)
+        buyer = Buyer.objects.filter(telegram_user_id=self.chat_id).get()
+        MessageLog.objects.create(message_text=message.text, bot_id=self.bot_id, buyer=buyer)
+
 
     def handle_answer_from_bot_support(self, message):
         self._core_answer_from_bot_support(message)

@@ -6,7 +6,7 @@ from django.contrib import admin
 from easy_thumbnails.widgets import ImageClearableFileInput
 from easy_thumbnails.fields import ThumbnailerField
 
-from shop_bot_app.models import Product, Order, Buyer, Feedback, PostponedPost, PostponedPostResult, Catalog, BotAdministratorProfile, Bot, BotBuyerMap, FAQ
+from shop_bot_app.models import Product, Order, Buyer, Feedback, PostponedPost, PostponedPostResult, Catalog, BotAdministratorProfile, Bot, BotBuyerMap, FAQ, MessageLog
 
 
 class GetBotMixin(object):
@@ -128,6 +128,10 @@ class FAQAdminForm(forms.ModelForm):
 class FAQAdmin(CustomModelAdmin):
     form = FAQAdminForm
 
+
+class MessageLogAdmin(admin.ModelAdmin):
+    list_display = ['id', 'message_text', 'created_at', 'buyer', 'bot']
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Buyer, BuyerAdmin)
@@ -138,3 +142,4 @@ admin.site.register(Catalog, CatalogAdmin)
 admin.site.register(Bot, BotAdmin)
 admin.site.register(BotBuyerMap, BotBuyerMapAdmin)
 admin.site.register(FAQ, FAQAdmin)
+admin.site.register(MessageLog, MessageLogAdmin)

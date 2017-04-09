@@ -143,6 +143,16 @@ class Bot(models.Model):
         initialize_webhook_for_bot(self.telegram_token)
 
 
+class MessageLog(models.Model):
+    message_text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    buyer = models.ForeignKey(Buyer, null=True, blank=True)
+    bot = models.ForeignKey(Bot, null=True, blank=True)
+
+    def __unicode__(self):
+        return self.message_text
+
+
 class FAQ(models.Model):
     bot = models.ForeignKey(Bot)
     question = models.CharField(max_length=255)
