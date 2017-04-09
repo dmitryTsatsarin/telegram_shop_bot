@@ -269,7 +269,7 @@ class BotView(object):
         matched_result = re.search(u'[^\+\s\(\)\d]+', message.text)
         if matched_result:
             self.pseudo_session.set(CacheKey.NEED_PHONE, True)
-            text_out = u'Так не пойдет, нужно ввести ваш номер телефона в формате "код_оператора телефон". Пример: 29 1234567 %s' % Smile.SMILING_FACE_WITH_SMILING_EYE
+            text_out = u'Так не пойдет, нужно ввести ваш номер телефона в формате "код_страны код_оператора телефон". Пример: 7 495 1234567 %s' % Smile.SMILING_FACE_WITH_SMILING_EYE
             self.shop_telebot.send_message(message.chat.id, text_out)
         else:
             phone_number = message.text
