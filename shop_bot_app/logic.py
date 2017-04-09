@@ -48,7 +48,7 @@ class BotView(object):
         self.token = token
         menu_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         menu_markup.row(u'Каталог', u'Распродажа %')
-        menu_markup.row(u'FAQ (Помощь)', u'Задать вопрос')
+        menu_markup.row(u'Помощь', u'Задать вопрос')
         self.menu_markup = menu_markup
 
         close_product_dialog_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
