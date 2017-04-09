@@ -42,10 +42,10 @@ def initialize_bot_with_routing2(token, chat_id):
     bv.shop_telebot.simple_message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.BACK), content_types=['text'], handler=bv.handle_send_message_to_administator_preview_back)
 
     bv.shop_telebot.simple_message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.QUESTION_TO_ADMIN), content_types=['text'], handler=bv.handle_send_message_to_administator_preview)
-    bv.shop_telebot.simple_callback_query_handler(func=lambda call: call.data.lower().startswith(TextCommandEnum.QUESTION_ABOUT_PRODUCT), handler=bv.handle_start_question_about_product)
-    bv.shop_telebot.simple_message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.CLOSE_QUESTION_ABOUT_PRODUCT_DIALOG), content_types=['text'], handler=bv.handle_close_question_dialog)
+    # bv.shop_telebot.simple_callback_query_handler(func=lambda call: call.data.lower().startswith(TextCommandEnum.QUESTION_ABOUT_PRODUCT), handler=bv.handle_start_question_about_product)
+    bv.shop_telebot.simple_message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.CLOSE_QUESTION_MODE), content_types=['text'], handler=bv.handle_close_question_dialog)
     bv.shop_telebot.simple_message_handler(func=if_is_it_qestion_mode, content_types=['text'], handler=bv.handle_question_to_bot_support)
-    bv.shop_telebot.simple_message_handler(func=if_is_admin_answer_to_buyer, content_types=['text'], handler=bv.handle_question_about_product_admin_say)
+    bv.shop_telebot.simple_message_handler(func=if_is_admin_answer_to_buyer, content_types=['text'], handler=bv.handle_answer_from_bot_support)
 
     bv.shop_telebot.simple_message_handler(func=if_need_phone, content_types=['text'], handler=bv.handle_need_phone)
 

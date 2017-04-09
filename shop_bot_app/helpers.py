@@ -101,7 +101,7 @@ class TextCommandEnum(object):
     BACK_TO_PREVIOUS_CATALOG = u'back_to_previous_catalog'
     QUESTION_TO_ADMIN = u'задать вопрос'
     QUESTION_ABOUT_PRODUCT = u'/question_about_product'
-    CLOSE_QUESTION_ABOUT_PRODUCT_DIALOG = u'закончить разговор'
+    CLOSE_QUESTION_MODE = u'закончить разговор'
 
 
 class KeyValue(object):

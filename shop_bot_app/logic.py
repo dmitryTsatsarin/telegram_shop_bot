@@ -142,9 +142,12 @@ class BotView(object):
 
             markup = types.InlineKeyboardMarkup()
             callback_button = types.InlineKeyboardButton(text=u"Заказать", callback_data=order_command)
-            product_question_command = create_uri(TextCommandEnum.QUESTION_ABOUT_PRODUCT, product_id=product.id)
-            product_question_button = types.InlineKeyboardButton(text=u"Задать вопрос по товару", callback_data=product_question_command)
-            markup.add(product_question_button)
+
+            # пока не нужно, или удалить потом, или еще что
+            # product_question_command = create_uri(TextCommandEnum.QUESTION_ABOUT_PRODUCT, product_id=product.id)
+            # product_question_button = types.InlineKeyboardButton(text=u"Задать вопрос по товару", callback_data=product_question_command)
+            # markup.add(product_question_button)
+
             markup.add(callback_button)
             self.shop_telebot.send_photo(self.chat_id, image_file, caption=caption, reply_markup=markup)
         if product_count > offset + limit:
@@ -294,7 +297,7 @@ class BotView(object):
         if not settings.DEBUG:
             logger.warning(u'Запрос не обработался: %s' % message)
 
-    def handle_question_about_product_admin_say(self, message):
+    def handle_answer_from_bot_support(self, message):
         self._core_answer_from_bot_support(message)
 
     def handle_question_to_bot_support(self, message):
