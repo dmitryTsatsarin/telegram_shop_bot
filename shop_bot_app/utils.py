@@ -12,6 +12,14 @@ class ShopTeleBot(TeleBot, object):
         # треды выключил по умолчанию
         super(ShopTeleBot, self).__init__(token, threaded=threaded, skip_pending=skip_pending)
 
+    def send_message(self, chat_id, text, disable_web_page_preview=None, reply_to_message_id=None, reply_markup=None,
+                     parse_mode=None, disable_notification=None):
+        result = super(ShopTeleBot, self).send_message(chat_id, text, disable_web_page_preview=disable_web_page_preview, reply_to_message_id=reply_to_message_id, reply_markup=reply_markup,
+                     parse_mode=parse_mode, disable_notification=disable_notification)
+        # может в будущем добавить логивароние ответов
+        #logger.info('LOGGER: %s' % text)
+        return result
+
     def send_photo(self, *args, **kwargs):
         result = super(ShopTeleBot, self).send_photo(*args, **kwargs)
         print 'Send photo is finished'
@@ -36,21 +44,21 @@ class ShopTeleBot(TeleBot, object):
         self.add_callback_query_handler(handler_dict)
 
     def _exec_task(self, *args, **kwargs):
-        def dont_response_on_old_request(message):
-            last_request_at = cache.get('last_request_at', version=message.chat.id)
-            if last_request_at <= message.date or not last_request_at:
-                cache.set('last_request_at', message.date, version=message.chat.id)
-                super(ShopTeleBot, self)._exec_task(*args, **kwargs)
-            else:
-                logger.info(u'Request has old time %s. Current = %s. Ignored' % (message.date, last_request_at))
+
+        def log_message_text(message):
+            logger.info(u'LOGGER: %s' % message.text)
 
         instance = args[1]
         if hasattr(instance, 'message'):
             message = instance.message
         else:
             message = instance
+
         # временно отключено, так как блокировало по нажатию на старые кнопки. От спама в текущей реализации не спасает. Подумать о другом варианте
         #dont_response_on_old_request(message)
+
+        # может в будущем делать логивароние всех запросов пользователя, но пока это лишнее
+        #log_message_text(message)
 
         super(ShopTeleBot, self)._exec_task(*args, **kwargs)
 
