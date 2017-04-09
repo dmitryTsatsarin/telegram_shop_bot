@@ -109,13 +109,15 @@ BROKER_URL = 'amqp://myusername:mypassword@localhost:5672//telegram_shop_bot'
 ALLOWED_HOSTS = ['*', '2e6f2ab8.ngrok.io']
 
 
-WEBHOOK_HOST = 'a0c4305f.ngrok.io'
-WEBHOOK_LISTEN = 'a0c4305f.ngrok.io'
+WEBSITE_HOST = 'f4ca9758.ngrok.io'
+WEBHOOK_HOST = WEBSITE_HOST
+WEBHOOK_LISTEN = WEBHOOK_HOST
 WEBHOOK_PORT = 443
 
 WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
+WEBSITE_BASE_URL = 'https://%s' % WEBSITE_HOST
 
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = '/tmp/mails'
+#EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+#EMAIL_FILE_PATH = '/tmp/mails'
 
 LOGUTILS_REQUEST_TIME_THRESHOLD = 20 # уведомлять о всех запросах дольше 10 секунд
