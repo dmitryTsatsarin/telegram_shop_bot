@@ -110,14 +110,22 @@ class BotView(object):
                 text = u'%s (%s)' % (catalog.name, products_count)
                 callback_button = types.InlineKeyboardButton(text=text, callback_data=order_command)
                 markup.add(callback_button)
-            self.shop_telebot.send_message(message.chat.id, 'Каталоги', reply_markup=markup)
+            self.shop_telebot.send_message(self.chat_id, 'Каталоги', reply_markup=markup)
         else:
-            self.shop_telebot.send_message(message.chat.id, 'Каталогов нет :(', reply_markup=markup)
+            self.shop_telebot.send_message(self.chat_id, 'Каталогов нет :(', reply_markup=markup)
 
     def handle_show_catalog_products(self, call, indirect_call=None):
         limit = 5
 
-        call_data = indirect_call if indirect_call else call.data
+        if indirect_call:
+            call_data = indirect_call
+        elif call and call.data:
+            call_data = call.data
+        else:
+            # кеш почему-то очищен, покажем просто каталог
+            self.handle_catalog(None)
+            return
+
         query_dict = get_query_dict(call_data)
         catalog_id_str = query_dict.get('catalog_id')
         catalog_id = int(catalog_id_str) if catalog_id_str else None
