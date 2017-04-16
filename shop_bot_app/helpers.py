@@ -91,12 +91,17 @@ def send_mail_to_the_shop(order):
     logger.debug('письмо отправлено')
 
 
+class Smile(object):
+    SMILING_FACE_WITH_SMILING_EYE = u"\U0001F60A"
+    QUESTION = u"\U00002753"
+
+
 class TextCommandEnum(object):
     GET_CATALOG = u'/get_catalog'
     GET_PRODUCT = u'/get_it_'
     GET_PRODUCT_CONFIRM = u'/get_it2_'
     BACK = u'назад'
-    FAQ = u'faq'
+    FAQ = u'%s помощь' % Smile.QUESTION
     SALE = u'распродажа'
     BACK_TO_PREVIOUS_CATALOG = u'back_to_previous_catalog'
     QUESTION_TO_ADMIN = u'задать вопрос'
@@ -143,10 +148,6 @@ class CacheKeyValue(object):
 
 class TsdRegExp(object):
     FIND_USER_IN_REPLY = '\(id=(\d+)\)'
-
-
-class Smile(object):
-    SMILING_FACE_WITH_SMILING_EYE = u"\U0001F60A"
 
 
 def get_request_data(request):
