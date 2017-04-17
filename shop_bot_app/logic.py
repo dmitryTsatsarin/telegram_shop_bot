@@ -251,7 +251,7 @@ class BotView(object):
         product_id = query_dict.get('product_id')
         if product_id:
             self.pseudo_session.set(CacheKey.PRODUCT_ID, product_id)
-            text_out = u'Введите ваш номер телефона в формате "код_оператора телефон". Пример: 29 1234567'
+            text_out = u'Введите ваш номер телефона в формате "код_страны код_оператора телефон". Пример: 7 495 1234567'
             self.shop_telebot.send_message(self.chat_id, text_out)
             self.pseudo_session.set(CacheKey.NEED_PHONE, True)
         else:
