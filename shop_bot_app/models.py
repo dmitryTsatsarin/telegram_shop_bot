@@ -27,6 +27,7 @@ class Product(models.Model):
     catalog = models.ForeignKey('Catalog', null=True)
     is_discount = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True, help_text='Показывать товар покупателю или нет')
+    vendor_code = models.CharField(max_length=255, blank=True, null=True, help_text="Артикул товара", verbose_name='Артикул')
 
     def __unicode__(self):
         return self.name
