@@ -98,6 +98,8 @@ class Smile(object):
     DELIVERY_TRUCK = u'\U0001F69A'
     HIGH_VOLTAGE = u'\U000026A1'
     MEGAPHONE = u'\U0001F4E3'
+    CROSS_MARK = u"\U0000274C"
+    WHITE_HEAVY_CHECK_MARK = u"\U00002705"
 
 
 class TextCommandEnum(object):
