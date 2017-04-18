@@ -17,6 +17,13 @@ def rename_and_upload_path(instance, filename):
     return 'product_photo/%s%s' % (base_filename, ext)
 
 
+def faq_path(instance, filename):
+    _, ext = splitext(filename)
+
+    base_filename = str(uuid.uuid4())
+
+    return 'faq/%s%s' % (base_filename, ext)
+
 
 class Product(models.Model):
     bot = models.ForeignKey('Bot')
@@ -158,7 +165,11 @@ class FAQ(models.Model):
     bot = models.ForeignKey(Bot)
     question = models.CharField(max_length=255)
     answer = models.CharField(max_length=1000)
+    picture = ThumbnailerImageField(null=True, blank=True, upload_to=faq_path)
 
+    def get_400x400_picture_file(self):
+        image_file = open(self.picture['400x400'].path)
+        return image_file
 
     def __unicode__(self):
         return u'%s' % self.question

@@ -120,13 +120,19 @@ class BotBuyerMapAdmin(admin.ModelAdmin):
 
 class FAQAdminForm(forms.ModelForm):
     answer = forms.CharField(widget=forms.Textarea)
+
     class Meta:
         model = FAQ
-        fields = ['question', 'answer']
+        fields = ['question', 'answer', 'picture']
 
 
 class FAQAdmin(CustomModelAdmin):
     form = FAQAdminForm
+
+    # непонятно почему не работает, если указывать ThumbnailerField и widget=ImageClearableFileInput в форме ((((((
+    formfield_overrides = {
+        ThumbnailerField: {'widget': ImageClearableFileInput},
+    }
 
 
 class MessageLogAdmin(admin.ModelAdmin):

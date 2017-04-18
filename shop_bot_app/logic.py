@@ -97,6 +97,9 @@ class BotView(object):
                 answer = faq.answer
                 text_out = u'%s\n%s' % (question, answer)
                 self.shop_telebot.send_message(message.chat.id, text_out)
+                if faq.picture:
+                    image_file = faq.get_400x400_picture_file()
+                    self.shop_telebot.send_photo(self.chat_id, image_file)
         else:
             self.shop_telebot.send_message(message.chat.id, u'Раздел помощи пуст')
 
