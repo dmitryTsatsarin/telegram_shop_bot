@@ -48,7 +48,7 @@ class BotView(object):
         self.token = token
         menu_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         menu_markup.row(u'Каталог', u'Распродажа %')
-        menu_markup.row(u'%s Помощь' % Smile.QUESTION, u'Задать вопрос')
+        menu_markup.row(TextCommandEnum.FAQ, u'Задать вопрос')
         self.menu_markup = menu_markup
 
         close_product_dialog_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -106,7 +106,7 @@ class BotView(object):
         if catalogs:
             for catalog in catalogs:
                 order_command = u'/get_catalog?catalog_id=%s' % catalog.id
-                products_count = Product.objects.filter(catalog_id=catalog.id, bot_id=self.bot_id, is_visible=True).count()
+                products_count = Product.objects.filter(catalog_id=catalog.id, bot_id=self.bot_id, is_visible=True, is_discount=False).count()
                 text = u'%s (%s)' % (catalog.name, products_count)
                 callback_button = types.InlineKeyboardButton(text=text, callback_data=order_command)
                 markup.add(callback_button)
@@ -138,7 +138,7 @@ class BotView(object):
 
         self.pseudo_session.set(CacheKey.LAST_CATALOG_URI, call_data)
 
-        queryset = Product.objects.filter(bot_id=self.bot_id, catalog_id=catalog_id, is_visible=True).order_by('-id')
+        queryset = Product.objects.filter(bot_id=self.bot_id, catalog_id=catalog_id, is_visible=True, is_discount=False).order_by('-id')
         product_count = queryset.count()
 
         products = list(queryset[offset:offset + limit])

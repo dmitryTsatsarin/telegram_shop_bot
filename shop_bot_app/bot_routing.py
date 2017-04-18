@@ -30,7 +30,7 @@ def initialize_bot_with_routing2(token, chat_id):
 
 
     bv.shop_telebot.simple_message_handler(commands=['start', ], handler=bv.handle_start_help)
-    bv.shop_telebot.simple_message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.FAQ), content_types=['text'], handler=bv.handle_faq)
+    bv.shop_telebot.simple_message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.FAQ.lower()), content_types=['text'], handler=bv.handle_faq)
     bv.shop_telebot.simple_message_handler(func=lambda message: message.text.lower().startswith(u'каталог'), content_types=['text'], handler=bv.handle_catalog)
     bv.shop_telebot.simple_callback_query_handler(func=lambda call: call.data.lower().startswith(TextCommandEnum.GET_CATALOG), handler=bv.handle_show_catalog_products)
     bv.shop_telebot.simple_message_handler(func=lambda message: message.text.lower().startswith(TextCommandEnum.SALE), content_types=['text'], handler=bv.handle_catalog_discount)

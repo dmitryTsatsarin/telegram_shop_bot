@@ -101,7 +101,7 @@ class TextCommandEnum(object):
     GET_PRODUCT = u'/get_it_'
     GET_PRODUCT_CONFIRM = u'/get_it2_'
     BACK = u'назад'
-    FAQ = u'%s помощь' % Smile.QUESTION
+    FAQ = u'%s Доставка' % Smile.QUESTION
     SALE = u'распродажа'
     BACK_TO_PREVIOUS_CATALOG = u'back_to_previous_catalog'
     QUESTION_TO_ADMIN = u'задать вопрос'
