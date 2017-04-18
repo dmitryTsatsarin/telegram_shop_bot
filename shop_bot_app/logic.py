@@ -47,8 +47,8 @@ class BotView(object):
     def __init__(self, token, chat_id):
         self.token = token
         menu_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        menu_markup.row(u'Каталог', u'Распродажа %')
-        menu_markup.row(TextCommandEnum.FAQ, u'Задать вопрос')
+        menu_markup.row(TextCommandEnum.CATALOG, TextCommandEnum.SALE)
+        menu_markup.row(TextCommandEnum.FAQ, TextCommandEnum.QUESTION_TO_ADMIN)
         self.menu_markup = menu_markup
 
         close_product_dialog_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)

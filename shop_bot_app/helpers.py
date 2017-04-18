@@ -94,6 +94,10 @@ def send_mail_to_the_shop(order):
 class Smile(object):
     SMILING_FACE_WITH_SMILING_EYE = u"\U0001F60A"
     QUESTION = u"\U00002753"
+    HANDBAG = u"\U0001F45C"
+    DELIVERY_TRUCK = u'\U0001F69A'
+    HIGH_VOLTAGE = u'\U000026A1'
+    MEGAPHONE = u'\U0001F4E3'
 
 
 class TextCommandEnum(object):
@@ -101,12 +105,14 @@ class TextCommandEnum(object):
     GET_PRODUCT = u'/get_it_'
     GET_PRODUCT_CONFIRM = u'/get_it2_'
     BACK = u'назад'
-    FAQ = u'%s Доставка' % Smile.QUESTION
-    SALE = u'распродажа'
+    FAQ = u'%s Доставка' % Smile.DELIVERY_TRUCK
+    SALE = u'%s Распродажа' % Smile.HIGH_VOLTAGE
     BACK_TO_PREVIOUS_CATALOG = u'back_to_previous_catalog'
-    QUESTION_TO_ADMIN = u'задать вопрос'
+    QUESTION_TO_ADMIN = u'%s Задать вопрос' % Smile.MEGAPHONE
     QUESTION_ABOUT_PRODUCT = u'/question_about_product'
     CLOSE_QUESTION_MODE = u'закончить разговор'
+    CATALOG = u'%s Каталог' % Smile.HANDBAG
+
 
 
 class KeyValue(object):
