@@ -31,7 +31,7 @@ class Product(models.Model):
     description = models.TextField()
     picture = ThumbnailerImageField(upload_to=rename_and_upload_path)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
-    catalog = models.ForeignKey('Catalog', null=True)
+    catalog = models.ForeignKey('Catalog', null=True, blank=True)
     is_discount = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=True, help_text='Показывать товар покупателю или нет')
     vendor_code = models.CharField(max_length=255, blank=True, null=True, help_text="Артикул товара", verbose_name='Артикул')
