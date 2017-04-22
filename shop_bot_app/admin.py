@@ -44,9 +44,8 @@ class CustomModelAdmin(admin.ModelAdmin, GetBotMixin):
 
 
 class ProductAdmin(CustomModelAdmin):
-    list_display = ['name', 'id', 'is_visible', 'description', 'vendor_code']
+    list_display = ['name', 'id', 'is_visible', 'description', 'vendor_code', 'catalog']
     fields = ('name', 'description', 'picture', 'catalog', 'is_discount', 'is_visible', 'vendor_code')
-
 
     formfield_overrides = {
         ThumbnailerField: {'widget': ImageClearableFileInput },
@@ -58,7 +57,6 @@ class ProductAdmin(CustomModelAdmin):
             bot = self.get_bot(request)
             form.base_fields['catalog'].queryset = Catalog.objects.filter(bot=bot)
         return form
-
 
 
 class PostponedPostAdmin(CustomModelAdmin):
