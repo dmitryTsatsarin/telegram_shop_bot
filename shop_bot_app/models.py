@@ -160,6 +160,12 @@ class MessageLog(models.Model):
     def __unicode__(self):
         return self.message_text
 
+# подумать о добавлении, или попробовать logstash
+# class SystemLog(models):
+#     time_execution =
+#     time_in_queue =
+#     full_time =
+
 
 class FAQ(models.Model):
     bot = models.ForeignKey(Bot)

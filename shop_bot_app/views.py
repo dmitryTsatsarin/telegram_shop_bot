@@ -3,6 +3,7 @@ import logging
 
 import sys
 import traceback
+import arrow
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
@@ -20,7 +21,8 @@ def webhooks(request, token):
 
         if 'CONTENT_LENGTH' in request.META and 'CONTENT_TYPE' in request.META and request.META['CONTENT_TYPE'] == 'application/json':
             json_string = get_request_data(request)
-            CollectorTask().apply_async(args=[token, json_string])
+            message_created_at = arrow.now().datetime
+            CollectorTask().apply_async(args=[token, json_string, message_created_at])
             return HttpResponse('')
         else:
             print 'Forbiden for %s' % request.body

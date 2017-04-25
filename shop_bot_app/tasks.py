@@ -40,9 +40,11 @@ class CollectorTask(app.Task):
             data_dict = {}
         return data_dict
 
-    def run(self, token, json_string, **kwargs):
+    def run(self, token, json_string, message_created_at, **kwargs):
         try:
             update = telebot_lib.types.Update.de_json(json_string)
+            update.sys_message_created_at = message_created_at
+            update.sys_message_received_at = arrow.now().datetime
             request_dict = self._custom_de_json(json_string)
             logger.info(u'data=%s' % json_string.decode('unicode-escape'))
 

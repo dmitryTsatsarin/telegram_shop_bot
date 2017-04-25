@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'forward'
+import arrow
 from telebot import TeleBot
 from django.conf import settings
 from django.core.cache import cache
@@ -43,6 +44,19 @@ class ShopTeleBot(TeleBot, object):
         handler_dict = self._build_handler_dict(handler, func=func, **kwargs)
         self.add_callback_query_handler(handler_dict)
 
+    def process_new_updates(self, *args, **kwargs):
+        result = super(ShopTeleBot, self).process_new_updates(*args, **kwargs)
+
+        instance = args[0][0]
+        now = arrow.now().datetime
+        created_at = instance.sys_message_created_at
+        received_at = instance.sys_message_received_at
+        if (now - created_at).total_seconds() > settings.BOT_REQUEST_TIME_THRESHOLD:
+            msg = u'Время ответа = %s, время нахождения запроса в очереди = %s, время обработки = %s' % ((now - created_at).total_seconds(), (received_at - created_at).total_seconds(), (now - received_at).total_seconds())
+            logger.warning(msg)
+
+        return result
+
     def _exec_task(self, *args, **kwargs):
 
         def log_message_text(message):
@@ -53,9 +67,6 @@ class ShopTeleBot(TeleBot, object):
             message = instance.message
         else:
             message = instance
-
-        # временно отключено, так как блокировало по нажатию на старые кнопки. От спама в текущей реализации не спасает. Подумать о другом варианте
-        #dont_response_on_old_request(message)
 
         # может в будущем делать логивароние всех запросов пользователя, но пока это лишнее
         #log_message_text(message)
