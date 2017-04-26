@@ -47,6 +47,7 @@ class Product(models.Model):
 class BotBuyerMap(models.Model):
     buyer = models.ForeignKey('Buyer', related_name='bot_buyer_map_rel')
     bot = models.ForeignKey('Bot', related_name='bot_buyer_map_rel')
+    dialog_with_support = models.TextField(null=True)
 
     def __unicode__(self):
         return u'%s <-> %s' % (self.bot.name, self.buyer.full_name)

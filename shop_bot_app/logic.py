@@ -5,6 +5,8 @@ import re
 from django.conf import settings
 from django.core.cache import cache
 from django.core.mail import send_mail
+from django.db.models import F, Value
+from django.db.models.functions import Concat
 from telebot import types, apihelper
 
 from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile, CacheAsSession, CacheKeyValue, \
@@ -362,6 +364,7 @@ class BotView(object):
         markup = types.ForceReply()
         text_out = u'Пользователь: %s %s (id=%s) Спрашивает:\n%s' % (message.chat.first_name, message.chat.last_name, message.chat.id, message.text)
         self.shop_telebot.send_message(self.bot_support_chat_id, text=text_out, reply_markup=markup)
+        BotBuyerMap.objects.filter(bot_id=self.bot_id, buyer__telegram_user_id=message.chat.id).update(dialog_with_support=Concat(F('dialog_with_support'),Value(u'%s\n' % text_out)))
 
         key_value = CacheKeyValue().QUESTION_MODE
         key_value_cached = self.pseudo_session.get(key_value.get_cache_key(), {})
@@ -383,6 +386,7 @@ class BotView(object):
         text_out = u'*Администратор*: %s' % message.text
         try:
             self.shop_telebot.send_message(buyer_chat_id, text=text_out, reply_markup=self.close_product_dialog_markup, parse_mode='markdown')
+            BotBuyerMap.objects.filter(bot_id=self.bot_id, buyer__telegram_user_id=buyer_chat_id).update(dialog_with_support=Concat(F('dialog_with_support'), Value(u'%s\n' % text_out)))
         except apihelper.ApiException as e:
             error_msg = 'Forbidden: bot was blocked by the user'
             if e.result.status_code == 403 and error_msg in e.result.text:
