@@ -52,7 +52,7 @@ class CollectorTask(app.Task):
                 chat_id = update.callback_query.message.chat.id
             elif update.message:
                 chat_id = update.message.chat.id
-            elif request_dict.has_key('channel_post'):
+            elif request_dict.has_key('channel_post') or request_dict.has_key('edited_channel_post'):
                 # пока игнорируем сообщения из каналов
                 logger.info(u'Проигнорировано сообщение из channel %s' % json_string.decode('unicode-escape'))
                 return
@@ -66,7 +66,7 @@ class CollectorTask(app.Task):
                 logger.error('Token "%s" is not found' % token)
         except Exception as e:
             if settings.DEBUG:
-                logging.debug(e, exc_info=True) # logging, потому что это в celery логеры - это магия, пришел опытным путем и гуглением (((((
+                logger.debug(e, exc_info=True)
             else:
                 logger.exception(e)
                 raise
