@@ -5,7 +5,7 @@ import re
 from django.conf import settings
 from django.core.cache import cache
 from django.core.mail import send_mail
-from telebot import types
+from telebot import types, apihelper
 
 from shop_bot_app.helpers import TextCommandEnum, send_mail_to_the_shop, generate_and_send_discount_product, get_query_dict, create_uri, CacheKey, Smile, CacheAsSession, CacheKeyValue, \
     TsdRegExp
@@ -381,7 +381,14 @@ class BotView(object):
             self.pseudo_session.set(key_value.get_cache_key(), key_value.data, chat_id=buyer_chat_id)
 
         text_out = u'*Администратор*: %s' % message.text
-        self.shop_telebot.send_message(buyer_chat_id, text=text_out, reply_markup=self.close_product_dialog_markup, parse_mode='markdown')
+        try:
+            self.shop_telebot.send_message(buyer_chat_id, text=text_out, reply_markup=self.close_product_dialog_markup, parse_mode='markdown')
+        except apihelper.ApiException as e:
+            error_msg = 'Forbidden: bot was blocked by the user'
+            if e.result.status_code == 403 and error_msg in e.result.text:
+                buyer = Buyer.objects.filter(telegram_user_id=buyer_chat_id).get()
+                text_out = u'Пользователь %s (id=%s) заблокировал бота' % (buyer.full_name, buyer_chat_id)
+                self.shop_telebot.send_message(self.bot_support_chat_id, text=text_out)
 
     def _core_get_product_description(self):
         pass
