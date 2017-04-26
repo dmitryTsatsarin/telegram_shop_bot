@@ -13,7 +13,8 @@ uwsgi --ini ./shop_bot.uwsgi.ini  --socket :8002
 	
 **Запуск воркеров**
 
-	python manage.py celery -A telegram_shop_bot worker -l info --events -c 1 --settings=telegram_shop_bot.settings.prod
+	nice -n 1 python manage.py celery -A telegram_shop_bot worker -l info  -c 5 --settings=telegram_shop_bot.settings.prod
+	nice -n 1 python manage.py celery -A telegram_shop_bot worker -P prefork -l info -Q collector -c 5  --settings=telegram_shop_bot.settings.prod
 	
 	
 **Регламент первой установки**
