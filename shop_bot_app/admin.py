@@ -60,7 +60,11 @@ class ProductAdmin(CustomModelAdmin):
 
 
 class PostponedPostAdmin(CustomModelAdmin):
-    pass
+
+    formfield_overrides = {
+        ThumbnailerField: {'widget': ImageClearableFileInput},
+    }
+
 
 
 class PostponedPostResultAdmin(admin.ModelAdmin):

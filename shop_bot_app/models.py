@@ -17,6 +17,14 @@ def rename_and_upload_path(instance, filename):
     return 'product_photo/%s%s' % (base_filename, ext)
 
 
+def postponed_post_path(instance, filename):
+    _, ext = splitext(filename)
+
+    base_filename = str(uuid.uuid4())
+
+    return 'postponed_post/%s%s' % (base_filename, ext)
+
+
 def faq_path(instance, filename):
     _, ext = splitext(filename)
 
@@ -89,9 +97,14 @@ class PostponedPost(models.Model):
     bot = models.ForeignKey('Bot')
     title = models.CharField(max_length=100, verbose_name=u'Заголовок')
     description = models.TextField(verbose_name=u'Описание преложения/новости')
+    picture = ThumbnailerImageField(upload_to=postponed_post_path, null=True, blank=True, verbose_name=u'Фото для новости')
     product = models.ForeignKey(Product, verbose_name=u'Товар', null=True, blank=True)
     send_at = models.DateTimeField(verbose_name=u'Отправить в')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_400x400_picture_file(self):
+        image_file = open(self.picture['400x400'].path)
+        return image_file
 
     def __unicode__(self):
         return u'%s' % self.title

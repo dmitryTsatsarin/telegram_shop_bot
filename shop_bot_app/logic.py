@@ -36,8 +36,13 @@ def send_schedule_product(telegram_user_id, postponed_post):
         markup.add(callback_button)
 
         shop_telebot.send_photo(telegram_user_id, image_file, caption=caption, reply_markup=markup, disable_notification=True)
+    elif postponed_post.picture:
+        image_file = postponed_post.get_400x400_picture_file()
+        caption = u'%s\n%s' % (postponed_post.title, post_description)
+
+        shop_telebot.send_photo(telegram_user_id, image_file, caption=caption, disable_notification=True)
     else:
-        shop_telebot.send_message(telegram_user_id, text=post_description, disable_notification=True)
+        shop_telebot.send_message(telegram_user_id, text="%s\n%s" % (postponed_post.title, post_description), disable_notification=True)
 
 
 class BotView(object):
