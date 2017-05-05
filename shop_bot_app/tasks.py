@@ -11,6 +11,7 @@ from shop_bot_app.logic import send_schedule_product
 from shop_bot_app.models import Bot
 from shop_bot_app.models import PostponedPost, Buyer, PostponedPostResult
 from telegram_shop_bot.celery import app
+from telebot import apihelper
 import json
 
 logger = logging.getLogger(__name__)
@@ -25,9 +26,15 @@ def post_by_schedule():
         buyers = list(Buyer.objects.filter(bot_buyer_map_rel__bot_id=postponed_post.bot_id).distinct())
         for buyer in buyers:
             if not PostponedPostResult.objects.filter(buyer=buyer, postponed_post=postponed_post).exists():
-                send_schedule_product(buyer.telegram_user_id, postponed_post)
-                PostponedPostResult.objects.create(buyer=buyer, postponed_post=postponed_post, is_sent=True)
-                logger.info(u'Запущен PostponedPost с id=%s к buyer=(%s, %s)' % (postponed_post.id, buyer.id, buyer.full_name))
+                try:
+                    send_schedule_product(buyer.telegram_user_id, postponed_post)
+                    PostponedPostResult.objects.create(buyer=buyer, postponed_post=postponed_post, is_sent=True)
+                    logger.info(u'Запущен PostponedPost с id=%s к buyer=(%s, %s)' % (postponed_post.id, buyer.id, buyer.full_name))
+                except apihelper.ApiException as e:
+                    error_msg = 'Forbidden: bot was blocked by the user'
+                    if e.result.status_code == 403 and error_msg in e.result.text:
+                        msg = u'Пользователь %s (id=%s) заблокировал бота' % (buyer.full_name, buyer.telegram_user_id)
+                        logger.info(msg)
 
 
 class CollectorTask(app.Task):
