@@ -69,7 +69,12 @@ LOGGING = {
             'propagate': False,
         },
         'shop_bot_app': {
-            'level': 'INFO',
+            'level': 'DEBUG',
+            'handlers': ['console', 'sentry'],
+            'propagate': False,
+        },
+        'shop_bot_app.tasks': {
+            'level': 'DEBUG',
             'handlers': ['console', 'sentry'],
             'propagate': False,
         },
@@ -106,10 +111,10 @@ DATABASES = {
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 BROKER_URL = 'amqp://myusername:mypassword@localhost:5672//telegram_shop_bot'
 
-ALLOWED_HOSTS = ['*', '2e6f2ab8.ngrok.io']
+ALLOWED_HOSTS = ['*']
 
 
-WEBSITE_HOST = 'f4ca9758.ngrok.io'
+WEBSITE_HOST = '7028a1ba.ngrok.io'
 WEBHOOK_HOST = WEBSITE_HOST
 WEBHOOK_LISTEN = WEBHOOK_HOST
 WEBHOOK_PORT = 443
@@ -120,4 +125,7 @@ WEBSITE_BASE_URL = 'https://%s' % WEBSITE_HOST
 #EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 #EMAIL_FILE_PATH = '/tmp/mails'
 
-LOGUTILS_REQUEST_TIME_THRESHOLD = 20 # уведомлять о всех запросах дольше 10 секунд
+BOT_REQUEST_TIME_THRESHOLD = 20
+LOGUTILS_REQUEST_TIME_THRESHOLD = BOT_REQUEST_TIME_THRESHOLD # уведомлять о всех запросах дольше 10 секунд
+
+BOTAN_TOKEN = '61f52984-d4da-47df-b6b2-28e3b0b24e44'

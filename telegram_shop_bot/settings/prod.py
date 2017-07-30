@@ -96,5 +96,6 @@ WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
 WEBSITE_BASE_URL = 'https://%s' % WEBSITE_HOST
 
 
+BOTAN_TOKEN = '5ead001b-3b55-4c05-8e5b-36ef499a3e35'
 #WEBHOOK_SSL_CERT = '/etc/letsencrypt/live/bots.artbelka.miramik.ru/fullchain.pem'
 #WEBHOOK_SSL_PRIV = '/etc/letsencrypt/live/bots.artbelka.miramik.ru/privkey.pem'

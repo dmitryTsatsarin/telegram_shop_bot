@@ -14,6 +14,8 @@ from telegram_shop_bot.celery import app
 from telebot import apihelper
 import json
 
+import botan
+
 logger = logging.getLogger(__name__)
 
 
@@ -57,8 +59,10 @@ class CollectorTask(app.Task):
 
             if update.callback_query:
                 chat_id = update.callback_query.message.chat.id
+                event_name = update.callback_query.data
             elif update.message:
                 chat_id = update.message.chat.id
+                event_name = update.message.text
             elif request_dict.has_key('channel_post') or request_dict.has_key('edited_channel_post'):
                 # пока игнорируем сообщения из каналов
                 logger.info(u'Проигнорировано сообщение из channel %s' % json_string.decode('unicode-escape'))
@@ -67,6 +71,7 @@ class CollectorTask(app.Task):
                 raise Exception('chat_id is not found')
 
             if Bot.objects.filter(telegram_token=token).exists():
+                MetricTask().apply_async(args=[chat_id, request_dict, event_name])
                 shop_telebot = initialize_bot_with_routing2(token, chat_id)
                 shop_telebot.process_new_updates([update])
             else:
@@ -79,3 +84,23 @@ class CollectorTask(app.Task):
                 raise
 
 
+class MetricTask(app.Task):
+    queue = 'metric'
+
+    def run(self, uid, message_dict, event_name, **kwargs):
+        try:
+            # uid = message.from_user
+            # message_dict = message.to_dict()
+            # event_name = update.message.text
+
+            result = botan.track(settings.BOTAN_TOKEN, uid, message_dict, event_name)
+            if result and result['status'] and 'accepted' not in result['status']:
+                logger.warning('Something wrong with metrics: %s' % result)
+            logger.debug(result)
+
+        except Exception as e:
+            if settings.DEBUG:
+                logger.debug(e, exc_info=True)
+            else:
+                logger.exception(e)
+                raise
