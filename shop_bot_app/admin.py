@@ -117,7 +117,7 @@ class BotAdmin(admin.ModelAdmin):
 
 
 class BotBuyerMapAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['__str__', 'dialog_with_support']
 
 
 class FAQAdminForm(forms.ModelForm):
