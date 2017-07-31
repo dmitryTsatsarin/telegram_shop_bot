@@ -89,7 +89,7 @@ class FeedbackAdmin(CustomModelAdmin):
 
 
 class CatalogAdmin(CustomModelAdmin):
-    pass
+    list_display = ['name', 'id']
 
 
 class BotAdministratorProfileAdmin(admin.ModelAdmin):
