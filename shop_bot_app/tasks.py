@@ -96,7 +96,7 @@ class MetricTask(app.Task):
             result = botan.track(settings.BOTAN_TOKEN, uid, message_dict, event_name)
             if result and result['status'] and 'accepted' not in result['status']:
                 logger.warning('Something wrong with metrics: %s' % result)
-            logger.debug(result)
+            logger.info(result)
 
         except Exception as e:
             if settings.DEBUG:
