@@ -55,6 +55,8 @@ class Product(models.Model):
 class BotBuyerMap(models.Model):
     buyer = models.ForeignKey('Buyer', related_name='bot_buyer_map_rel')
     bot = models.ForeignKey('Bot', related_name='bot_buyer_map_rel')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_blocked_by_user = models.BooleanField(default=False)
     dialog_with_support = models.TextField(null=True)
 
     def __unicode__(self):

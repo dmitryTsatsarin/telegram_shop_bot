@@ -20,16 +20,19 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def post_by_schedule():
+def post_by_schedule(dry_run=False):
+    # огнаничим что посты нельзя создавать больше чем на 2 недели вперед
+    start_datetime = arrow.now().replace(days=-14).datetime
 
-    postponed_posts = list(PostponedPost.objects.filter(send_at__lte=arrow.now().datetime))
+    postponed_posts = list(PostponedPost.objects.filter(created_at__gte=start_datetime, send_at__lte=arrow.now().datetime))
     # todo: опимизировать все в один запрос (но пока несрочно)
     for postponed_post in postponed_posts:
-        buyers = list(Buyer.objects.filter(bot_buyer_map_rel__bot_id=postponed_post.bot_id).distinct())
+        buyers = list(Buyer.objects.filter(bot_buyer_map_rel__bot_id=postponed_post.bot_id, bot_buyer_map_rel__created_at__lte=postponed_post.created_at).distinct())
         for buyer in buyers:
             if not PostponedPostResult.objects.filter(buyer=buyer, postponed_post=postponed_post).exists():
                 try:
-                    send_schedule_product(buyer.telegram_user_id, postponed_post)
+                    if not dry_run:
+                        send_schedule_product(buyer.telegram_user_id, postponed_post)
                     PostponedPostResult.objects.create(buyer=buyer, postponed_post=postponed_post, is_sent=True)
                     logger.info(u'Запущен PostponedPost с id=%s к buyer=(%s, %s)' % (postponed_post.id, buyer.id, buyer.full_name))
                 except apihelper.ApiException as e:
@@ -37,6 +40,7 @@ def post_by_schedule():
                     if e.result.status_code == 403 and error_msg in e.result.text:
                         msg = u'Пользователь %s (id=%s) заблокировал бота' % (buyer.full_name, buyer.telegram_user_id)
                         logger.info(msg)
+                        # todo: добавить сюда сохранение инфы, блокирован бот или нет
 
 
 class CollectorTask(app.Task):
