@@ -188,7 +188,7 @@ class BotView(object):
         else:
             offset = 0
 
-        queryset = Product.objects.filter(bot_id=self.bot_id, is_discount=True, is_visible=True).order_by('-id')
+        queryset = Product.objects.filter(bot_id=self.bot_id, is_discount=True, is_visible=True).order_by('?')
         product_count = queryset.count()
 
         products = list(queryset[offset:offset + limit])
