@@ -97,5 +97,6 @@ WEBSITE_BASE_URL = 'https://%s' % WEBSITE_HOST
 
 
 BOTAN_TOKEN = '5ead001b-3b55-4c05-8e5b-36ef499a3e35'
+EMAIL_SHOP_BOT_ADMIN = 'rino1onenet@gmail.com'
 #WEBHOOK_SSL_CERT = '/etc/letsencrypt/live/bots.artbelka.miramik.ru/fullchain.pem'
 #WEBHOOK_SSL_PRIV = '/etc/letsencrypt/live/bots.artbelka.miramik.ru/privkey.pem'
